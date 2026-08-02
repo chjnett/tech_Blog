@@ -14,18 +14,32 @@
 
 ---
 
-## Phase 1 — 기반 (Workers + D1 + 퍼블릭 API) — 진행 중 (4/7)
+## Phase 1 — 기반 (Workers + D1 + 퍼블릭 API) — 완료 (7/7)
 
 Plan: [`2026-08-02-blog-phase1-foundation.md`](superpowers/plans/2026-08-02-blog-phase1-foundation.md)
-(Subagent-Driven Development로 실행 중)
+(Subagent-Driven Development로 실행, 최종 브랜치 리뷰까지 완료)
 
 - [x] Task 1: Worker 스캐폴딩 + D1 데이터베이스 생성
 - [x] Task 2: D1 `posts` 스키마 + 로컬 시드 데이터
 - [x] Task 3: `GET /api/posts`, `GET /api/posts/:slug`
 - [x] Task 4: `GET /rss.xml`
-- [ ] Task 5: 터미널 블록(` ```terminal `) 렌더링
-- [ ] Task 6: Prism.js 코드 블록 신택스 하이라이팅
-- [ ] Task 7: `pages/` 이동 + 공유 디자인 토큰 + Worker Routes
+- [x] Task 5: 터미널 블록(` ```terminal `) 렌더링
+- [x] Task 6: Prism.js 코드 블록 신택스 하이라이팅
+- [x] Task 7: `pages/` 이동 + 공유 디자인 토큰 + Worker Routes
+
+로컬 D1에 실제 글 1편(`attention-is-all-you-need-kv-cache-gqa`)을 넣어 전체 파이프라인
+(마크다운 → Prism 하이라이팅 → JSON API)을 검증함. 예쁜 페이지로 보려면 아래 "포스트 상세
+페이지 템플릿" 항목이 필요 — 현재는 `/api/posts/:slug`로 JSON만 확인 가능.
+
+## Phase 1.5 — figure 블록 렌더러 + 포스트 상세 페이지 — 스펙 완료, 플랜 미작성
+
+Spec: [`2026-08-02-figure-block-and-post-page-design.md`](superpowers/specs/2026-08-02-figure-block-and-post-page-design.md)
+
+- [ ] `writing-plans`로 구현 플랜 작성
+- [ ] `worker/src/figure.ts` — JSON→SVG 레이어드 자동 배치 렌더러 (`emphasis` 필드, flow/compare/stack)
+- [ ] `GET /posts/:slug` Worker SSR 라우트 (article 셸 + `/mark.jpg` 로고)
+- [ ] `pages/blog.css` — code/terminal/figure 공유 스타일시트, Prism 토큰 → 4색 매핑
+- [ ] `worker/wrangler.toml`에 `/posts/*` Worker Route 추가
 
 ## Phase 2 — 리뷰 대시보드 — 미착수 (스펙 없음)
 
@@ -66,12 +80,10 @@ Spec: [`2026-08-02-papers-pipeline-design.md`](superpowers/specs/2026-08-02-pape
 
 ---
 
-## 설계는 됐지만 어느 Phase에도 아직 안 들어간 것
+## Phase 1 최종 리뷰에서 넘어온 항목 (블로킹 아님, Phase 1.5에서 같이 처리)
 
-- [ ] **figure 블록 자동 레이아웃.** `exBlog.html`은 좌표를 손으로 조정한 예시라 그대로
-      재현 불가 — `flow`/`compare`/`stack`별 그리드 자동 배치, 노드 강조(emphasis) 필드,
-      라벨 줄바꿈 규칙을 별도 설계해야 함. (`docs/HANDOFF.md` §2.3, §7)
-- [ ] **포스트 상세 페이지 템플릿.** `content_html`을 실제로 감싸서 보여줄 `pages/`
-      아티클 셸(article-header/article-body + code-block/terminal/figure CSS)이 아직
-      없음. Phase 1의 Task 6이 Worker가 내보내는 실제 클래스명(Prism 토큰 등)을 정하니,
-      그 이후에 착수.
+- [ ] RSS `<link>`/`<guid>`의 slug가 `escapeXml` 안 됨 (현재는 슬러그를 사람이 직접
+      지어서 위험 없음 — 슬러그 자동생성이 생기면 반드시 처리)
+- [ ] `content_md`에 들어간 원본 HTML을 `marked`가 그대로 통과시킴 — 지금은 신뢰된
+      수동 콘텐츠뿐이라 문제 없지만, Phase 3(논문 자동 초안) 등 기계 생성 콘텐츠가
+      `posts`에 들어가기 전에 sanitize 전략을 정해야 함
