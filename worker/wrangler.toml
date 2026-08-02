@@ -1,6 +1,7 @@
 name = "tech-blog-worker"
 main = "src/index.ts"
 compatibility_date = "2026-08-02"
+compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
