@@ -616,12 +616,14 @@ renderer.code = (token: Tokens.Code) => {
   return defaultRenderer.code(token);
 };
 
-marked.use({ renderer });
+marked.use({ renderer, useNewRenderer: true });
 
 export function renderMarkdown(md: string): string {
   return marked.parse(md) as string;
 }
 ```
+
+`useNewRenderer: true` is required for `marked@13.0.3` to call `renderer.code` with the token object shown above instead of legacy positional args — without it, `token.lang`/`token.text` are `undefined`.
 
 - [ ] **Step 3: Verify terminal block rendering**
 
@@ -717,12 +719,14 @@ renderer.code = (token: Tokens.Code) => {
 </div>`;
 };
 
-marked.use({ renderer });
+marked.use({ renderer, useNewRenderer: true });
 
 export function renderMarkdown(md: string): string {
   return marked.parse(md) as string;
 }
 ```
+
+`useNewRenderer: true` is required — without it, `marked@13.0.3` calls a token-object-style `renderer.code(token)` with legacy positional args (`text, lang, escaped`) instead, and `token.lang`/`token.text` above would be `undefined`. Task 5 hit and fixed this same issue; keeping it here so Task 6 doesn't rediscover it.
 
 - [ ] **Step 4: Verify Prism highlighting**
 
