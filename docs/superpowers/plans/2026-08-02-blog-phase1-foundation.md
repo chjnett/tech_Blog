@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Stand up the Cloudflare Worker + D1 backend that serves published blog posts via `GET /api/posts`, `GET /api/posts/:slug`, and `GET /rss.xml`, and move the existing static shell into a `pages/` directory alongside it.
+**Goal:** Stand up the Cloudflare Worker + D1 backend that serves published blog posts via `GET /api/posts`, `GET /api/posts/:slug`, and `GET /rss.xml` — with `code`/`terminal` content-component rendering per `docs/HANDOFF.md` §2 — and move the existing static shell into a `pages/` directory alongside it.
 
-**Architecture:** A single Cloudflare Worker (`worker/`) reads a `posts` table in D1. `content_md` is stored raw and converted to `content_html` at request time via the `marked` library. Only `status = 'published'` rows are ever visible through the public API — everything else 404s. Pages (`pages/`) and the Worker share one custom domain: the Worker only intercepts `/api/*` and `/rss.xml` via Cloudflare Worker Routes, everything else falls through to Pages.
+**Architecture:** A single Cloudflare Worker (`worker/`) reads a `posts` table in D1. `content_md` is stored raw and converted to `content_html` at request time via a customized `marked` renderer: plain prose renders normally, fenced code blocks are syntax-highlighted with Prism.js, and ` ```terminal ` blocks get the terminal-card markup instead. Only `status = 'published'` rows are ever visible through the public API — everything else 404s. Pages (`pages/`) and the Worker share one custom domain: the Worker only intercepts `/api/*` and `/rss.xml` via Cloudflare Worker Routes, everything else falls through to Pages.
 
-**Tech Stack:** Cloudflare Workers, D1, Wrangler 3, TypeScript, `marked` (markdown → HTML).
+**Tech Stack:** Cloudflare Workers, D1, Wrangler 3, TypeScript, `marked` (markdown → HTML), `prismjs` (code syntax highlighting).
 
 ## Global Constraints
 
@@ -17,6 +17,8 @@
 - D1 migrations this phase cover the `posts` table only — `papers` and `commit_log` are out of scope.
 - The production domain isn't chosen yet. `wrangler.toml` uses the literal placeholder `<YOUR_DOMAIN>` in the `routes` and `SITE_URL` var — this must be filled in by the user before `wrangler deploy` (not before local dev, which doesn't need it).
 - D1 error → `500 { "error": "internal error" }`, logged via `console.error`. Empty `/api/posts` result → `200 []`, not an error.
+- Code blocks only use 4 syntax-highlight colors (keyword/string/comment/function, `docs/HANDOFF.md` §1.1) — Prism's other token types (operator, punctuation, number, etc.) get no color, they inherit the default code text color. Never add a 5th color.
+- The `figure` content component (JSON → SVG diagram) is explicitly out of scope for this phase — see `docs/TODO.md`. A ` ```figure ` fenced block just falls through as an unhighlighted code block for now; that's expected, not a bug.
 
 ---
 
@@ -225,18 +227,45 @@ Some [link](https://example.com) and more text.',
     NULL,
     '2026-08-02T00:00:00Z',
     NULL
+  ),
+  (
+    '44444444-4444-4444-4444-444444444444',
+    'code-terminal-demo',
+    'Code + Terminal Demo',
+    '# Code + Terminal Demo
+
+Testing syntax highlighting.
+
+```python
+# multiply two numbers
+def multiply(a, b):
+    return a * b
+```
+
+```terminal
+$ python demo.py
+result: 42
+```',
+    'Demo post exercising code and terminal blocks.',
+    'manual',
+    NULL,
+    'published',
+    '["demo"]',
+    NULL,
+    '2026-08-03T00:00:00Z',
+    '2026-08-03T00:00:00Z'
   );
 ```
 
 - [ ] **Step 5: Load the seed data**
 
 Run: `npm run db:seed:local`
-Expected: command succeeds, 3 rows inserted.
+Expected: command succeeds, 4 rows inserted.
 
 - [ ] **Step 6: Verify seed data**
 
 Run: `npx wrangler d1 execute tech_blog_db --local --command "SELECT slug, status FROM posts ORDER BY slug"`
-Expected: 3 rows — `draft-only`/`draft`, `hello-world`/`published`, `second-post`/`published`.
+Expected: 4 rows — `code-terminal-demo`/`published`, `draft-only`/`draft`, `hello-world`/`published`, `second-post`/`published`.
 
 - [ ] **Step 7: Commit**
 
@@ -258,7 +287,7 @@ git commit -m "worker: add posts migration and local seed data"
 
 **Interfaces:**
 - Consumes: `Env` from `worker/src/index.ts` (Task 1).
-- Produces: `PostRow` type (`worker/src/types.ts`), `listPublishedPosts(db): Promise<PostRow[]>` and `getPublishedPostBySlug(db, slug): Promise<PostRow | null>` (`worker/src/db.ts`), `renderMarkdown(md): string` (`worker/src/render.ts`) — all consumed by Task 4's `rss.ts`.
+- Produces: `PostRow` type (`worker/src/types.ts`), `listPublishedPosts(db): Promise<PostRow[]>` and `getPublishedPostBySlug(db, slug): Promise<PostRow | null>` (`worker/src/db.ts`), `renderMarkdown(md): string` (`worker/src/render.ts`) — all consumed by Task 4's `rss.ts`. `renderMarkdown`'s signature (`(md: string) => string`) stays stable through Task 5/6, which only change its internals (terminal blocks, then Prism highlighting).
 
 - [ ] **Step 1: Create `worker/src/types.ts`**
 
@@ -400,7 +429,7 @@ export default {
 - [ ] **Step 6: Verify `GET /api/posts`**
 
 Run: `npm run dev`, then: `curl -s http://localhost:8787/api/posts | python3 -m json.tool`
-Expected: JSON array of 2 objects (only `published` rows), `second-post` before `hello-world` (DESC by `published_at`), no `content_md`/`content_html` field present.
+Expected: JSON array of 3 objects (only `published` rows, `draft-only` excluded), ordered `code-terminal-demo`, `second-post`, `hello-world` (DESC by `published_at`), no `content_md`/`content_html` field present.
 
 - [ ] **Step 7: Verify `GET /api/posts/:slug` (found)**
 
@@ -518,7 +547,7 @@ export default {
 - [ ] **Step 3: Verify the feed**
 
 Run: `curl -s http://localhost:8787/rss.xml`
-Expected: `Content-Type: application/rss+xml`, well-formed XML containing exactly 2 `<item>` blocks (`hello-world`, `second-post`), and no mention of `draft-only`.
+Expected: `Content-Type: application/rss+xml`, well-formed XML containing exactly 3 `<item>` blocks (`code-terminal-demo`, `second-post`, `hello-world`), and no mention of `draft-only`.
 
 - [ ] **Step 4: Commit**
 
@@ -529,7 +558,187 @@ git commit -m "worker: implement GET /rss.xml"
 
 ---
 
-### Task 5: Repo layout — `pages/` shell, shared design tokens, Worker Routes
+### Task 5: Terminal block rendering (` ```terminal ` fenced blocks)
+
+**Files:**
+- Create: `worker/src/terminal-block.ts`
+- Modify: `worker/src/render.ts` (custom `marked` renderer, terminal branch only)
+
+**Interfaces:**
+- Consumes: none from earlier tasks beyond `marked` itself.
+- Produces: `renderTerminalBlock(text: string): string` (`worker/src/terminal-block.ts`), used by `worker/src/render.ts`. Task 6 modifies `render.ts` again to add Prism highlighting alongside this — don't remove the terminal branch when doing that.
+
+- [ ] **Step 1: Create `worker/src/terminal-block.ts`**
+
+```typescript
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export function renderTerminalBlock(text: string): string {
+  const lines = text.replace(/\n$/, '').split('\n');
+  const body = lines
+    .map((line) =>
+      line.startsWith('$')
+        ? `<span class="cmd">${escapeHtml(line)}</span>`
+        : `<span class="out">${escapeHtml(line)}</span>`
+    )
+    .join('\n');
+
+  return `<div class="terminal">
+  <div class="terminal-bar">
+    <span></span><span></span><span></span>
+  </div>
+  <pre>${body}</pre>
+</div>`;
+}
+```
+
+- [ ] **Step 2: Modify `worker/src/render.ts` to special-case `terminal` blocks**
+
+```typescript
+import { marked, type Tokens } from 'marked';
+import { renderTerminalBlock } from './terminal-block';
+
+const defaultRenderer = new marked.Renderer();
+const renderer = new marked.Renderer();
+
+renderer.code = (token: Tokens.Code) => {
+  const infostring = (token.lang ?? '').trim();
+
+  if (infostring === 'terminal') {
+    return renderTerminalBlock(token.text);
+  }
+
+  return defaultRenderer.code(token);
+};
+
+marked.use({ renderer });
+
+export function renderMarkdown(md: string): string {
+  return marked.parse(md) as string;
+}
+```
+
+- [ ] **Step 3: Verify terminal block rendering**
+
+Run: `npm run dev`, then: `curl -s http://localhost:8787/api/posts/code-terminal-demo | python3 -m json.tool`
+Expected: `content_html` contains `<div class="terminal">`, `<span class="cmd">$ python demo.py</span>`, and `<span class="out">result: 42</span>`. The python fenced block should still appear as a plain (unhighlighted) `<pre><code class="language-python">` at this point — Prism isn't wired in until Task 6.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add worker/src/terminal-block.ts worker/src/render.ts
+git commit -m "worker: render terminal fenced blocks as terminal cards"
+```
+
+---
+
+### Task 6: Code block rendering (Prism.js syntax highlighting)
+
+**Files:**
+- Create: `worker/src/highlight.ts`
+- Modify: `worker/src/render.ts` (replace the default-renderer fallback with Prism highlighting)
+- Modify: `worker/package.json` (add `prismjs` + `@types/prismjs`)
+
+**Interfaces:**
+- Consumes: `renderTerminalBlock` from `worker/src/terminal-block.ts` (Task 5) — stays untouched.
+- Produces: `highlightCode(code: string, lang: string): { html: string; lang: string }` (`worker/src/highlight.ts`), used by `worker/src/render.ts`.
+
+- [ ] **Step 1: Add `prismjs` to `worker/package.json`**
+
+Add to `dependencies`: `"prismjs": "^1.29.0"`. Add to `devDependencies`: `"@types/prismjs": "^1.26.0"`.
+
+Run (from `worker/`): `npm install`
+Expected: `node_modules/prismjs` present, no errors.
+
+- [ ] **Step 2: Create `worker/src/highlight.ts`**
+
+```typescript
+import Prism from 'prismjs';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-json';
+
+const SUPPORTED_LANGUAGES = new Set(['python', 'javascript', 'typescript', 'bash', 'json']);
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export function highlightCode(code: string, lang: string): { html: string; lang: string } {
+  const normalized = lang.toLowerCase().trim();
+  const grammar = Prism.languages[normalized];
+
+  if (!grammar || !SUPPORTED_LANGUAGES.has(normalized)) {
+    return { html: escapeHtml(code), lang: normalized || 'text' };
+  }
+
+  return { html: Prism.highlight(code, grammar, normalized), lang: normalized };
+}
+```
+
+Only these 5 languages are registered for now — extend `SUPPORTED_LANGUAGES` and the imports above together when a post needs a new one (e.g. `c`/`cpp` for NPU/CUDA content, per `docs/HANDOFF.md`). Prism's own token classes (`.token.keyword`, `.token.string`, `.token.comment`, `.token.function`, etc.) come through unchanged in `html` — mapping only 4 of them to color is a CSS concern for the future post-page template (`docs/TODO.md`), not this Worker.
+
+- [ ] **Step 3: Modify `worker/src/render.ts` to highlight non-terminal code blocks**
+
+```typescript
+import { marked, type Tokens } from 'marked';
+import { highlightCode } from './highlight';
+import { renderTerminalBlock } from './terminal-block';
+
+const renderer = new marked.Renderer();
+
+renderer.code = (token: Tokens.Code) => {
+  const infostring = (token.lang ?? '').trim();
+
+  if (infostring === 'terminal') {
+    return renderTerminalBlock(token.text);
+  }
+
+  const language = infostring.split(/\s+/)[0] || 'text';
+  const { html, lang } = highlightCode(token.text, language);
+
+  return `<div class="code-block">
+  <div class="code-bar">
+    <span class="code-lang">${lang}</span>
+    <button class="copy-btn">copy</button>
+  </div>
+  <pre><code>${html}</code></pre>
+</div>`;
+};
+
+marked.use({ renderer });
+
+export function renderMarkdown(md: string): string {
+  return marked.parse(md) as string;
+}
+```
+
+- [ ] **Step 4: Verify Prism highlighting**
+
+Run: `npm run dev`, then: `curl -s http://localhost:8787/api/posts/code-terminal-demo | python3 -m json.tool`
+Expected: `content_html` contains `<div class="code-block">`, `<span class="code-lang">python</span>`, and Prism token spans — e.g. `<span class="token keyword">def</span>` and `<span class="token comment"># multiply two numbers</span>`. The terminal block from Task 5 should be unaffected (`<div class="terminal">` still present).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add worker/src/highlight.ts worker/src/render.ts worker/package.json worker/package-lock.json
+git commit -m "worker: syntax-highlight code blocks with Prism.js"
+```
+
+---
+
+### Task 7: Repo layout — `pages/` shell, shared design tokens, Worker Routes
 
 **Files:**
 - Move: `index.html` → `pages/index.html`
@@ -561,9 +770,19 @@ Stop the server: `pkill -f "http.server 8935"`.
 {
   "color": {
     "bg": "#FFFFFF",
+    "bgSoft": "#F6F7F9",
     "ink": "#10131A",
     "inkSoft": "#5B6270",
-    "line": "#E7E9EE"
+    "line": "#E7E9EE",
+    "accent": "var(--ink)"
+  },
+  "codeSyntax": {
+    "background": "#10131A",
+    "text": "#F6F7F9",
+    "keyword": "#E2A33D",
+    "string": "#6FBF8B",
+    "comment": "#7A8290",
+    "function": "#F6F7F9"
   },
   "font": {
     "mono": "'JetBrains Mono', ui-monospace, monospace",
@@ -572,7 +791,7 @@ Stop the server: `pkill -f "http.server 8935"`.
 }
 ```
 
-This mirrors the CSS custom properties already in `pages/index.html` (`--bg`, `--ink`, `--ink-soft`, `--line`, `--mono`, `--sans`) — no `accent` key, since the site is monochrome. Future components (review dashboard, paper cards) register new tokens here before use.
+This is the canonical token set from `docs/HANDOFF.md` §1.1. `accent` resolves to `var(--ink)` — there's no real accent color, only black/white inversion. `codeSyntax` is the *only* place color is allowed to appear (inside `.code-block`); nothing else in the site should reference those 4 colors. `pages/index.html`'s existing `--bg`/`--ink`/`--ink-soft`/`--line`/`--mono`/`--sans` custom properties already match `color`/`font` here — no changes needed to that file, this task only adds the shared JSON source of truth. Future components (review dashboard, paper cards, the post-page template) register new tokens here before use.
 
 - [ ] **Step 4: Add Worker Routes to `worker/wrangler.toml`**
 
