@@ -18,6 +18,10 @@ zone_name = "<YOUR_DOMAIN>"
 pattern = "<YOUR_DOMAIN>/rss.xml"
 zone_name = "<YOUR_DOMAIN>"
 
+[[routes]]
+pattern = "<YOUR_DOMAIN>/posts/*"
+zone_name = "<YOUR_DOMAIN>"
+
 [dev]
 # wrangler dev can't infer a host from the <YOUR_DOMAIN> placeholder routes above;
 # this only affects local dev, not what gets deployed.
