@@ -21,8 +21,8 @@ export function highlightCode(code: string, lang: string): { html: string; lang:
   const grammar = Prism.languages[normalized];
 
   if (!grammar || !SUPPORTED_LANGUAGES.has(normalized)) {
-    return { html: escapeHtml(code), lang: normalized || 'text' };
+    return { html: escapeHtml(code), lang: escapeHtml(normalized || 'text') };
   }
 
-  return { html: Prism.highlight(code, grammar, normalized), lang: normalized };
+  return { html: Prism.highlight(code, grammar, normalized), lang: escapeHtml(normalized) };
 }
