@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hyeonjun Cheon — AI Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --ink:#10131A;
+    --ink-soft:#5B6270;
+    --line:#E7E9EE;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --maxw: 880px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  img,svg{display:block; max-width:100%;}
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(255,255,255,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:18px 24px;
+    display:flex;
+    align-items:center;
+  }
+  .logo{
+    display:block;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    object-fit:cover;
+    border:1px solid var(--line);
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:72px 24px 40px;
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:40px;
+    align-items:center;
+  }
+  .hero-minimal{
+    grid-template-columns:1fr;
+    justify-items:center;
+    padding:96px 24px;
+  }
+  .github-icon-link{
+    color:var(--ink);
+    display:inline-flex;
+    padding:16px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .github-icon-link:hover{
+    border-color:var(--ink);
+    transform:translateY(-2px);
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr; padding-top:40px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <img class="logo" src="mark.jpg" alt="chjnett">
+  </nav>
+</header>
+
+<section class="hero hero-minimal">
+  <a href="https://github.com/chjnett" class="github-icon-link" target="_blank" rel="noopener" aria-label="GitHub 프로필로 이동">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" aria-hidden="true">
+      <path d="M12 0.5C5.65 0.5 0.5 5.65 0.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11.05 11.05 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.77.11 3.06.74.8 1.19 1.83 1.19 3.09 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.07.78 2.15 0 1.55-.01 2.8-.01 3.18 0 .3.21.66.79.55A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35 0.5 12 0.5Z"/>
+    </svg>
+  </a>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q, K, V는 대체 뭘까 — 데모 아티클</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --bg-soft:#F6F7F9;
+    --ink:#10131A;
+    --ink-soft:#5B6270;
+    --accent:var(--ink);
+    --line:#E7E9EE;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+  }
+  a{color:var(--accent);}
+
+  /* ---------- ARTICLE SHELL ---------- */
+  .article-header{
+    max-width:680px;
+    margin:0 auto;
+    padding:64px 24px 32px;
+    border-bottom:1px solid var(--line);
+  }
+  .article-meta{
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--accent);
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .article-meta .tag{
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    padding:3px 8px;
+    border-radius:4px;
+  }
+  .article-header h1{
+    font-family:var(--mono);
+    font-size:clamp(24px, 4vw, 32px);
+    font-weight:700;
+    letter-spacing:-0.01em;
+    line-height:1.3;
+  }
+  .article-body{
+    max-width:680px;
+    margin:0 auto;
+    padding:40px 24px 100px;
+    font-size:17px;
+    line-height:1.75;
+  }
+  .article-body p{margin-bottom:22px;}
+  .article-body h2{
+    font-family:var(--mono);
+    font-size:19px;
+    margin:44px 0 18px;
+    padding-top:4px;
+  }
+  .article-body strong{color:var(--ink); font-weight:600;}
+
+  /* ---------- CODE BLOCK ---------- */
+  .code-block{
+    background:var(--ink);
+    border-radius:8px;
+    margin:32px auto;
+    max-width:640px;
+    overflow:hidden;
+  }
+  .code-block .code-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 16px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .code-block .code-lang{
+    font-family:var(--mono);
+    font-size:11px;
+    color:rgba(246,247,249,0.5);
+    letter-spacing:0.02em;
+  }
+  .code-block .copy-btn{
+    font-family:var(--mono);
+    font-size:11px;
+    color:rgba(246,247,249,0.5);
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+  .code-block .copy-btn:hover{color:#fff;}
+  .code-block pre{
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13.5px;
+    line-height:1.7;
+    color:#F6F7F9;
+  }
+  .code-block .kw{color:#E2A33D; font-weight:600;}
+  .code-block .str{color:#6FBF8B;}
+  .code-block .cm{color:#7A8290; font-style:italic;}
+  .code-block .fn{color:#F6F7F9; font-weight:700;}
+
+  /* ---------- TERMINAL BLOCK ---------- */
+  .terminal{
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin:32px auto;
+    max-width:640px;
+    overflow:hidden;
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:6px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .terminal-bar span{width:9px; height:9px; border-radius:50%; background:var(--line);}
+  .terminal-bar .label{
+    margin-left:8px; font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);
+  }
+  .terminal pre{
+    padding:16px 18px;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.8;
+  }
+  .terminal .cmd{color:var(--accent); font-weight:700;}
+  .terminal .out{color:var(--ink-soft);}
+
+  /* ---------- FIGURE BLOCK ---------- */
+  .figure-block{
+    margin:40px auto;
+    max-width:640px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 20px 18px;
+    background:#fff;
+  }
+  .figure-block svg{width:100%; height:auto; display:block;}
+  .figure-caption{
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:16px;
+    line-height:1.6;
+    padding:0 12px;
+  }
+  .fig-node-label{font-family:var(--mono); font-size:12px; font-weight:700; fill:var(--ink);}
+  .fig-node-label.on-accent{fill:#fff;}
+  .fig-node-note{font-family:var(--mono); font-size:9.5px; fill:var(--ink-soft);}
+  .fig-edge-label{font-family:var(--mono); font-size:9.5px; fill:var(--accent);}
+
+  @media (max-width:640px){
+    .article-body{font-size:16px;}
+    .code-block, .terminal, .figure-block{border-radius:6px; margin-left:0; margin-right:0;}
+  }
+</style>
+</head>
+<body>
+
+<header class="article-header">
+  <div class="article-meta">
+    <span class="tag">#transformer</span>
+    <span class="tag">#attention</span>
+    <span>2026-08-02</span>
+  </div>
+  <h1>Q, K, V는 대체 뭘까 — scaling은 왜 하는가</h1>
+</header>
+
+<article class="article-body">
+
+  <p>attention 코드를 처음 봤을 때 제일 헷갈렸던 게 Q, K, V였다. 셋 다 그냥 입력을 선형변환한 것뿐인데 왜 이름이 다르고, 왜 셋으로 쪼개는지 감이 안 왔다. 직접 구현해보면서 이해한 걸 정리해본다.</p>
+
+  <h2>Q, K, V는 각자 다른 질문에 답한다</h2>
+  <p>Query는 "지금 이 위치가 뭘 찾고 있는가", Key는 "각 위치가 뭘 갖고 있다고 광고하는가", Value는 "실제로 넘겨줄 정보가 뭔가"다. Query와 Key를 비교해서 얼마나 관련 있는지 점수를 매기고, 그 점수만큼 Value를 섞어서 가져온다.</p>
+
+  <div class="figure-block">
+    <svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- nodes: q, k, v -->
+      <rect x="20" y="20" width="140" height="52" rx="6" fill="#fff" stroke="#10131A" stroke-width="1.6"/>
+      <text x="90" y="42" text-anchor="middle" class="fig-node-label">Query (Q)</text>
+      <text x="90" y="58" text-anchor="middle" class="fig-node-note">내가 찾고 싶은 것</text>
+
+      <rect x="20" y="90" width="140" height="52" rx="6" fill="#fff" stroke="#10131A" stroke-width="1.6"/>
+      <text x="90" y="112" text-anchor="middle" class="fig-node-label">Key (K)</text>
+      <text x="90" y="128" text-anchor="middle" class="fig-node-note">각 위치의 색인표</text>
+
+      <rect x="20" y="160" width="140" height="52" rx="6" fill="#fff" stroke="#10131A" stroke-width="1.6"/>
+      <text x="90" y="182" text-anchor="middle" class="fig-node-label">Value (V)</text>
+      <text x="90" y="198" text-anchor="middle" class="fig-node-note">실제 전달될 정보</text>
+
+      <!-- score node -->
+      <rect x="240" y="55" width="150" height="52" rx="6" fill="#10131A" stroke="#10131A" stroke-width="1.6"/>
+      <text x="315" y="77" text-anchor="middle" class="fig-node-label on-accent">유사도 계산</text>
+      <text x="315" y="93" text-anchor="middle" class="fig-node-note" fill="rgba(255,255,255,0.75)">Q·Kᵀ / √d_k</text>
+
+      <!-- output node -->
+      <rect x="440" y="90" width="140" height="52" rx="6" fill="#10131A" stroke="#10131A" stroke-width="1.6"/>
+      <text x="510" y="112" text-anchor="middle" class="fig-node-label on-accent">가중합 출력</text>
+      <text x="510" y="128" text-anchor="middle" class="fig-node-note" fill="rgba(255,255,255,0.75)">softmax(score)·V</text>
+
+      <!-- edges -->
+      <line x1="160" y1="46" x2="240" y2="70" stroke="#10131A" stroke-width="1.4"/>
+      <polygon points="240,70 231,66 233,74" fill="#10131A"/>
+
+      <line x1="160" y1="116" x2="240" y2="82" stroke="#10131A" stroke-width="1.4"/>
+      <polygon points="240,82 231,80 235,88" fill="#10131A"/>
+
+      <line x1="390" y1="81" x2="440" y2="105" stroke="#10131A" stroke-width="1.4"/>
+      <polygon points="440,105 430,102 433,110" fill="#10131A"/>
+      <text x="415" y="88" text-anchor="middle" class="fig-edge-label">softmax</text>
+
+      <line x1="160" y1="186" x2="440" y2="128" stroke="#10131A" stroke-width="1.4" stroke-dasharray="3 3"/>
+      <polygon points="440,128 430,127 434,134" fill="#10131A"/>
+    </svg>
+    <div class="figure-caption">Q, K, V의 역할 — Query가 Key와 얼마나 비슷한지 비교해서, Value를 얼마나 가져올지 정한다</div>
+  </div>
+
+  <p>처음엔 "그냥 입력 하나면 되지 왜 셋으로 나누냐"고 생각했는데, 역할을 분리해야 모델이 <strong>"뭘 찾을지"</strong>와 <strong>"뭘 줄지"</strong>를 따로 학습할 수 있다는 걸 나중에 이해했다. 셋 다 같은 입력에서 나오지만, 서로 다른 가중치 행렬을 거치니까 완전히 다른 표현이 된다.</p>
+
+  <h2>왜 √d_k로 나누는가</h2>
+  <p>Q·K 내적값은 차원(d_k)이 커질수록 값 자체가 커진다. 값이 크면 softmax가 한쪽으로 확 쏠려버려서(거의 0 아니면 1) 그래디언트가 죽는다. 그래서 √d_k로 나눠서 값의 스케일을 일정하게 유지한다 — 이게 "scaled" dot-product attention에서 scaled의 의미였다.</p>
+
+  <div class="code-block">
+    <div class="code-bar">
+      <span class="code-lang">python</span>
+      <button class="copy-btn">copy</button>
+    </div>
+    <pre><span class="cm"># Q, K, V를 받아 attention 가중치를 계산한다</span>
+<span class="kw">def</span> <span class="fn">scaled_dot_product_attention</span>(q, k, v):
+    d_k = q.size(-<span class="kw">1</span>)
+    scores = q @ k.transpose(-<span class="kw">2</span>, -<span class="kw">1</span>) / (d_k ** <span class="kw">0.5</span>)
+    weights = scores.softmax(dim=-<span class="kw">1</span>)
+    <span class="kw">return</span> weights @ v</pre>
+  </div>
+
+  <p>실제로 scaling을 빼고 돌려보니 loss가 초반부터 거의 안 줄어드는 걸 확인했다.</p>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span></span><span></span><span></span>
+      <span class="label">scaling 유무 비교 — python train.py</span>
+    </div>
+    <pre><span class="cmd">$ python train.py --scaling true</span>
+<span class="out">epoch 1 | loss 4.83
+epoch 5 | loss 2.91
+epoch 10 | loss 1.72</span>
+
+<span class="cmd">$ python train.py --scaling false</span>
+<span class="out">epoch 1 | loss 4.79
+epoch 5 | loss 4.61
+epoch 10 | loss 4.55  # 거의 안 줄어듦</span></pre>
+  </div>
+
+  <p>숫자로 직접 보니까 "왜 scaling이 필요한지" 논문 문장으로 읽었을 때보다 훨씬 체감이 됐다.</p>
+
+</article>
+
+</body>
+</html>
