@@ -1,4 +1,5 @@
 import { handleListPosts, handleGetPostBySlug } from './routes/posts';
+import { handleRss } from './routes/rss';
 
 export interface Env {
   DB: D1Database;
@@ -17,6 +18,10 @@ export default {
       const slugMatch = pathname.match(/^\/api\/posts\/([^/]+)$/);
       if (slugMatch && request.method === 'GET') {
         return await handleGetPostBySlug(env.DB, slugMatch[1]);
+      }
+
+      if (pathname === '/rss.xml' && request.method === 'GET') {
+        return await handleRss(env.DB, env.SITE_URL);
       }
 
       return Response.json({ error: 'not found' }, { status: 404 });
