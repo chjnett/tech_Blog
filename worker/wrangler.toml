@@ -9,3 +9,11 @@ database_id = "cc9ed78a-0d1a-4718-923c-a99ff8a2edc5"
 
 [vars]
 SITE_URL = "https://<YOUR_DOMAIN>"
+
+[[routes]]
+pattern = "<YOUR_DOMAIN>/api/*"
+zone_name = "<YOUR_DOMAIN>"
+
+[[routes]]
+pattern = "<YOUR_DOMAIN>/rss.xml"
+zone_name = "<YOUR_DOMAIN>"

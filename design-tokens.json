@@ -1,0 +1,22 @@
+{
+  "color": {
+    "bg": "#FFFFFF",
+    "bgSoft": "#F6F7F9",
+    "ink": "#10131A",
+    "inkSoft": "#5B6270",
+    "line": "#E7E9EE",
+    "accent": "var(--ink)"
+  },
+  "codeSyntax": {
+    "background": "#10131A",
+    "text": "#F6F7F9",
+    "keyword": "#E2A33D",
+    "string": "#6FBF8B",
+    "comment": "#7A8290",
+    "function": "#F6F7F9"
+  },
+  "font": {
+    "mono": "'JetBrains Mono', ui-monospace, monospace",
+    "sans": "'Inter', -apple-system, sans-serif"
+  }
+}
