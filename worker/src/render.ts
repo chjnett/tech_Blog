@@ -1,6 +1,7 @@
 import { marked, type Tokens } from 'marked';
 import { highlightCode } from './highlight';
 import { renderTerminalBlock } from './terminal-block';
+import { renderFigure } from './figure';
 
 const renderer = new marked.Renderer();
 
@@ -9,6 +10,10 @@ renderer.code = (token: Tokens.Code) => {
 
   if (infostring === 'terminal') {
     return renderTerminalBlock(token.text);
+  }
+
+  if (infostring === 'figure') {
+    return renderFigure(token.text);
   }
 
   const language = infostring.split(/\s+/)[0] || 'text';
