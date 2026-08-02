@@ -1,0 +1,20 @@
+{
+  "name": "tech-blog-worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 execute tech_blog_db --local --file=./migrations/0001_posts.sql",
+    "db:seed:local": "wrangler d1 execute tech_blog_db --local --file=./seed.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.90.0"
+  },
+  "dependencies": {
+    "marked": "^13.0.0"
+  }
+}

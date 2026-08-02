@@ -1,0 +1,11 @@
+name = "tech-blog-worker"
+main = "src/index.ts"
+compatibility_date = "2026-08-02"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tech_blog_db"
+database_id = "cc9ed78a-0d1a-4718-923c-a99ff8a2edc5"
+
+[vars]
+SITE_URL = "https://<YOUR_DOMAIN>"
