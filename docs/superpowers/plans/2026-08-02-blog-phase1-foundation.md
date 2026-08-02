@@ -746,7 +746,7 @@ git commit -m "worker: syntax-highlight code blocks with Prism.js"
 - Create: `design-tokens.json`
 - Modify: `worker/wrangler.toml` (add `[[routes]]`)
 
-**Interfaces:** None — this task only rearranges static assets and finalizes deploy-time config; it doesn't change any Worker code from Task 1–4.
+**Interfaces:** None — this task only rearranges static assets and finalizes deploy-time config; it doesn't change any Worker code from Task 1–6.
 
 - [ ] **Step 1: Move the static shell into `pages/`**
 
