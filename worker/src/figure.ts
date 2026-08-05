@@ -1,5 +1,7 @@
 import type { FigureEdge, FigureSpec, PositionedNode } from './figure-layout';
 import { computeLayout, NODE_WIDTH } from './figure-layout';
+import type { GroupsSpec } from './figure-groups';
+import { renderGroupsFigure } from './figure-groups';
 
 function escapeHtml(value: string): string {
   return value
@@ -64,6 +66,22 @@ function renderEdge(from: PositionedNode, to: PositionedNode, edge: FigureEdge, 
 ${label}`;
 }
 
+function validateGroupsSpec(raw: unknown): GroupsSpec {
+  const spec = raw as GroupsSpec;
+  if (!Array.isArray(spec.groups) || spec.groups.length === 0) {
+    throw new Error('groups figure requires at least one group');
+  }
+  for (const g of spec.groups) {
+    if (typeof g.label !== 'string' || !Number.isInteger(g.queryCount) || !Number.isInteger(g.kvCount)) {
+      throw new Error('each group needs a label, integer queryCount, integer kvCount');
+    }
+    if (g.queryCount < 1 || g.kvCount < 1) {
+      throw new Error('queryCount and kvCount must each be at least 1');
+    }
+  }
+  return spec;
+}
+
 function validateSpec(raw: unknown): FigureSpec {
   if (typeof raw !== 'object' || raw === null) {
     throw new Error('figure spec must be an object');
@@ -84,17 +102,12 @@ function validateSpec(raw: unknown): FigureSpec {
   return spec;
 }
 
-export function renderFigure(jsonText: string): string {
-  try {
-    const spec = validateSpec(JSON.parse(jsonText));
-    const { positioned, width, height, vertical } = computeLayout(spec);
-    const margin = 20;
+function renderFromParsed(parsed: unknown): string {
+  const margin = 20;
 
-    const nodesSvg = spec.nodes.map((n) => renderNode(positioned.get(n.id)!)).join('\n');
-    const edgesSvg = (spec.edges ?? [])
-      .map((e) => renderEdge(positioned.get(e.from)!, positioned.get(e.to)!, e, vertical))
-      .join('\n');
-
+  if (typeof parsed === 'object' && parsed !== null && (parsed as { type?: string }).type === 'groups') {
+    const spec = validateGroupsSpec(parsed);
+    const { svg, width, height } = renderGroupsFigure(spec);
     const viewW = width + margin * 2;
     const viewH = height + margin * 2;
     const captionHtml = spec.caption
@@ -104,12 +117,41 @@ export function renderFigure(jsonText: string): string {
     return `<div class="figure-block">
   <svg viewBox="0 0 ${viewW} ${viewH}" xmlns="http://www.w3.org/2000/svg">
     <g transform="translate(${margin}, ${margin})">
+      ${svg}
+    </g>
+  </svg>
+  ${captionHtml}
+</div>`;
+  }
+
+  const spec = validateSpec(parsed);
+  const { positioned, width, height, vertical } = computeLayout(spec);
+
+  const nodesSvg = spec.nodes.map((n) => renderNode(positioned.get(n.id)!)).join('\n');
+  const edgesSvg = (spec.edges ?? [])
+    .map((e) => renderEdge(positioned.get(e.from)!, positioned.get(e.to)!, e, vertical))
+    .join('\n');
+
+  const viewW = width + margin * 2;
+  const viewH = height + margin * 2;
+  const captionHtml = spec.caption
+    ? `<div class="figure-caption">${escapeHtml(spec.caption)}</div>`
+    : '';
+
+  return `<div class="figure-block">
+  <svg viewBox="0 0 ${viewW} ${viewH}" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(${margin}, ${margin})">
       ${nodesSvg}
       ${edgesSvg}
     </g>
   </svg>
   ${captionHtml}
 </div>`;
+}
+
+export function renderFigure(jsonText: string): string {
+  try {
+    return renderFromParsed(JSON.parse(jsonText));
   } catch {
     return `<pre><code>${escapeHtml(jsonText)}</code></pre>`;
   }
