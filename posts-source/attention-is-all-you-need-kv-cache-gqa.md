@@ -38,7 +38,16 @@ source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/attentio
 
 *(계산: `2(K,V) × 레이어 32 × 시퀀스 길이 × KV헤드 수 × head_dim 128 × 2바이트(fp16)`)*
 
+![Fig 1 — LLaMA-7B 기준 KV 캐시 크기 vs 컨텍스트 길이. 128K에서 MHA는 62.5 GB로 A100 VRAM 한계에 육박한다.](/posts-assets/attention-is-all-you-need-kv-cache-gqa/fig1_llama7b_kv_cache.png)
+
 128K 컨텍스트에서 MHA는 KV 캐시만 62.5GB다. 웬만한 GPU 한 장의 VRAM(24~80GB)을 캐시가 다 먹어버린다는 뜻이다. 여기서 "아, 원 논문이 다루지 않은 진짜 실전 병목이 이거구나" 싶었다.
+
+자기회귀 디코딩에서 매 스텝마다 실제로 무슨 일이 일어나는지 흐름으로 보면 병목 위치가 명확하다.
+
+```figure
+{"type":"flow","caption":"자기회귀 디코딩 1 스텝 — 연산량이 아니라 캐시 전체를 읽는 메모리 대역폭이 병목","nodes":[{"id":"prev","label":"이전 토큰 K,V","note":"KV 캐시에서 전체 읽기\n(seq_len × layers × heads × head_dim)"},{"id":"new_q","label":"현재 토큰 Q","note":"새로 계산, 캐시 불필요"},{"id":"bottleneck","label":"HBM 대역폭 병목","note":"캐시 크기에 비례해 읽기 시간 증가","emphasis":true},{"id":"attn","label":"Attention 연산","note":"Q × (캐시 K,V) → 다음 토큰 확률"},{"id":"out","label":"다음 토큰 생성","note":"argmax 또는 sampling"}],"edges":[{"from":"prev","to":"bottleneck","label":"캐시 읽기"},{"from":"bottleneck","to":"attn"},{"from":"new_q","to":"attn"},{"from":"attn","to":"out"}]}
+```
+
 
 ## 3부. GQA를 공부하다
 
@@ -56,6 +65,12 @@ GQA를 직관적으로 이해하려면 그림이 훨씬 빠르다. 세 가지 �
 
 ```figure
 {"type":"groups","caption":"Query 헤드는 항상 4개, Key/Value 헤드 수만 줄어든다 — 같은 색으로 묶인 Query들이 KV 하나를 공유한다","groups":[{"label":"Multi-head (MHA)","note":"KV heads: 4 (one each)","queryCount":4,"kvCount":4},{"label":"Grouped-query (GQA)","note":"KV heads: 2 (shared in groups)","queryCount":4,"kvCount":2},{"label":"Multi-query (MQA)","note":"KV heads: 1 (shared by all)","queryCount":4,"kvCount":1}]}
+```
+
+`repeat_kv`가 실제로 하는 일을 차원 단위로 추적하면 이렇다.
+
+```figure
+{"type":"flow","caption":"repeat_kv 브로드캐스트 동작 — 캐시에는 n_kv_head만 저장, 어텐션 계산 순간에만 쿼리 수에 맞게 반복","nodes":[{"id":"kv_cache","label":"KV 캐시","note":"shape: (B, n_kv_head=4, T, head_dim)\n메모리에 이 크기만 저장"},{"id":"expand","label":"expand + reshape","note":"실제 메모리 복사 없이 view만 변경"},{"id":"k_rep","label":"k_rep","note":"shape: (B, n_head=8, T, head_dim)\n어텐션 계산에만 이 크기 사용","emphasis":true},{"id":"attn","label":"Scaled Dot-Product Attention","note":"Q(n_head) × K_rep(n_head) → O(n_head)"}],"edges":[{"from":"kv_cache","to":"expand","label":"n_rep=2회 반복"},{"from":"expand","to":"k_rep"},{"from":"k_rep","to":"attn"}]}
 ```
 
 코드 레벨에서 보면 핵심은 `repeat_kv`라는 함수 하나로 요약된다. K, V 헤드 수가 쿼리 헤드 수보다 적으니, 어텐션 계산 직전에 그룹 크기만큼 K, V를 반복(broadcast)해서 쿼리 헤드 수에 맞춰준다.
@@ -109,6 +124,8 @@ for name, n_kv in configs.items():
 | GQA-8 | 8 | 5.88 ms |
 | GQA-4 | 4 | 0.92 ms |
 | MQA | 1 | 0.17 ms |
+
+![Fig 2 — numpy 복사 시간 프록시. KV 헤드 수를 줄일수록 읽기 시간이 선형에 가깝게 줄어든다 (seq_len=4096, 레이어 1개 기준).](/posts-assets/attention-is-all-you-need-kv-cache-gqa/fig2_numpy_proxy_timing.png)
 
 절대값 자체는 실제 GPU HBM 대역폭과 다르지만(CPU 캐시 계층, numpy 오버헤드 등이 섞여 있다), **KV 헤드 수를 줄일수록 데이터를 읽는 시간이 거의 선형적으로 줄어든다**는 추세는 명확했다. 여기까지가 "느낌만 잡은" 1차 검증이었다. 이걸로는 부족했다 — 실제로 attention이 동작하는 전체 파이프라인(파라미터, 캐시, 생성, 학습)에서 이 효과가 어떻게 나타나는지 직접 코드로 확인하고 싶었다.
 
@@ -407,6 +424,8 @@ KV 캐시 메모리 — **실측값이 이론값과 정확히 일치했다**:
 | GQA-2 | 197.1 | 158.2 | 70.3 |
 | MQA | 182.1 | 174.5 | 110.5 |
 
+![Fig 3 — 추론 속도 비교. 컨텍스트 1024에서 MQA가 MHA 대비 약 1.6× 빠르다.](/posts-assets/attention-is-all-you-need-kv-cache-gqa/fig3_inference_speed.png)
+
 짧은 컨텍스트(64, 256)에서는 이 정도 크기의 모델과 CPU 환경에서는 차이가 노이즈에 묻혀 뚜렷하지 않았다. 하지만 컨텍스트가 1024로 늘어나자 **MQA가 MHA 대비 약 1.6배 빨라졌다**(110.5 vs 67.6 tokens/sec) — 메모리 대역폭 병목이 컨텍스트 길이에 비례해서 커진다는 이론과 방향이 일치하는 결과다. 실제 GPU 서빙 환경, 그리고 더 긴 컨텍스트에서는 이 격차가 훨씬 크게 벌어질 것이다(2부에서 계산한 128K 컨텍스트 기준 62.5GB vs 1.95GB처럼).
 
 ### 5-3. 학습 sanity check — "제대로 동작은 하는가"
@@ -488,7 +507,15 @@ if __name__ == "__main__":
 | GQA-2 (n_kv=2) | 2.334 | 1.207 |
 | MQA (n_kv=1) | 2.329 | 1.091 |
 
+![Fig 4 — 학습 sanity check. 세 구성 모두 300 스텝 안에 2.3 → 1.0~1.2대로 정상 수렴. MHA가 가장 낮지만 차이는 근소하다.](/posts-assets/attention-is-all-you-need-kv-cache-gqa/fig4_loss_sanity.png)
+
 세 구성 모두 300 스텝 만에 무작위 예측 수준(2.303)에서 1.0~1.2 근처까지 정상적으로 수렴했다 — "동작은 제대로 한다"는 sanity check를 통과했다. MHA가 가장 낮고 GQA/MQA가 근소하게 뒤처지는 것도, 실제 논문·실무에서 보고되는 "GQA/MQA는 약간의 품질 손실이 있지만 크지 않다"는 경향과 방향이 일치한다.
+
+세 가지 구성의 품질 vs 속도 트레이드오프를 한 줄로 정리하면 이렇다.
+
+```figure
+{"type":"flow","caption":"MHA / GQA / MQA 품질·속도 트레이드오프 — 어느 쪽으로 이동할수록 서빙 비용이 내려가고, 표현력이 미세하게 줄어든다","nodes":[{"id":"mha","label":"MHA","note":"품질 최대, 캐시 최대\nLoss ≈ 1.03"},{"id":"gqa","label":"GQA","note":"품질·속도 균형점\nLoss ≈ 1.07~1.20","emphasis":true},{"id":"mqa","label":"MQA","note":"캐시 최소, 속도 최대\nLoss ≈ 1.09"}],"edges":[{"from":"mha","to":"gqa","label":"캐시 ↓  속도 ↑"},{"from":"gqa","to":"mqa","label":"캐시 ↓↓  속도 ↑↑"}]}
+```
 
 ## 6부. 정리: 논문이 말하지 않은 것, 이후 연구가 채운 것, 그리고 직접 확인한 것
 
