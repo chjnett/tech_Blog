@@ -42,7 +42,7 @@ source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/attentio
 
 ## 3부. GQA를 공부하다
 
-이 문제를 실제로 푼 게 **Multi-Query Attention(MQA, 2019)**과 그걸 개선한 **Grouped-Query Attention(GQA, 2023)**이다. 아이디어는 단순하다.
+이 문제를 실제로 푼 게 **[Multi-Query Attention(MQA, 2019)](https://arxiv.org/abs/1911.02150)**과 그걸 개선한 **[Grouped-Query Attention(GQA, 2023)](https://arxiv.org/abs/2305.13245)**이다. 아이디어는 단순하다.
 
 > 쿼리(Q) 헤드 수는 그대로 두고, **Key/Value 헤드 수만 줄여서 여러 쿼리 헤드가 하나의 K/V를 공유**하게 한다.
 
@@ -510,3 +510,11 @@ GPU 클러스터 없이도 — 이론적인 메모리 계산, CPU 레벨의 소�
 ---
 
 *이 글에 사용된 코드 전체(`model.py`, `benchmark.py`, `train_sanity_check.py`, `README.md`)는 첨부 파일로 함께 제공. `pip install torch --break-system-packages` 하나만 있으면 GPU 없이 그대로 재현 가능하다.*
+
+---
+
+*References:*
+
+- **[1] Attention Is All You Need**, Vaswani et al., NeurIPS 2017. [arXiv:1706.03762](https://arxiv.org/abs/1706.03762)
+- **[2] Fast Transformer Decoding: One Write-Head is All You Need (MQA)**, Shazeer, 2019. [arXiv:1911.02150](https://arxiv.org/abs/1911.02150)
+- **[3] GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints**, Ainslie et al., EMNLP 2023. [arXiv:2305.13245](https://arxiv.org/abs/2305.13245)
