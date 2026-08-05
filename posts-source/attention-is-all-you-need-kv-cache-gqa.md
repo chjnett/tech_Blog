@@ -509,7 +509,7 @@ if __name__ == "__main__":
 
 ![Fig 4 — 학습 sanity check. 세 구성 모두 300 스텝 안에 2.3 → 1.0~1.2대로 정상 수렴. MHA가 가장 낮지만 차이는 근소하다.](/posts-assets/attention-is-all-you-need-kv-cache-gqa/fig4_loss_sanity.png)
 
-세 구성 모두 300 스텝 만에 무작위 예측 수준(2.303)에서 1.0~1.2 근처까지 정상적으로 수렴했다 — "동작은 제대로 한다"는 sanity check를 통과했다. MHA가 가장 낮고 GQA/MQA가 근소하게 뒤처지는 것도, 실제 논문·실무에서 보고되는 "GQA/MQA는 약간의 품질 손실이 있지만 크지 않다"는 경향과 방향이 일치한다.
+세 구성 모두 300 스텝 만에 무작위 예측 수준(2.303)에서 1.0~1.2 근처까지 정상적으로 수렴했다 — "동작은 제대로 한다"는 sanity check를 통과했다. Loss가 낮아질수록 언어 모델의 지표인 <span class="tooltip" data-tooltip="Perplexity = e^Loss">퍼플렉시티</span>도 개선됨을 의미한다. MHA가 가장 낮고 GQA/MQA가 근소하게 뒤처지는 것도, 실제 논문·실무에서 보고되는 "GQA/MQA는 약간의 품질 손실이 있지만 크지 않다"는 경향과 방향이 일치한다.
 
 세 가지 구성의 품질 vs 속도 트레이드오프를 한 줄로 정리하면 이렇다.
 

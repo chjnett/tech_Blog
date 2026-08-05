@@ -217,7 +217,7 @@ $ .venv/bin/python3 scripts/mla_train_sanity.py
 | step 101–200 | 2.2227 | 1.9628 | **−0.2599** |
 | step 201–300 | 1.6234 | 1.3068 | **−0.3166** |
 
-초반 100스텝은 둘 다 비슷하게 시작한다. 하지만 101스텝부터 MLA가 뚜렷하게 갈라지기 시작해, 300스텝 시점에서 GQA-4 대비 0.32 낮은 Loss로 수렴했다.
+초반 100스텝은 둘 다 비슷하게 시작한다. 하지만 101스텝부터 MLA가 뚜렷하게 갈라지기 시작해, 300스텝 시점에서 GQA-4 대비 0.32 낮은 Loss(언어 모델의 성능 지표인 <span class="tooltip" data-tooltip="Perplexity = e^Loss">퍼플렉시티</span>와 직결됨)로 수렴했다.
 
 흥미로운 점은 실험 설정상 **MLA의 KV 캐시가 GQA-4보다 오히려 4배 작다**는 사실이다 (latent_dim=32 vs n_kv_head=4×head_dim=64). 더 적은 캐시 메모리로 더 낮은 Loss를 달성했다는 뜻이다.
 
