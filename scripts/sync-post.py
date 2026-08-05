@@ -41,6 +41,15 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
         raise ValueError("frontmatter가 '---'로 열리고 닫혀야 합니다")
     _, fm_text, body = parts
     fields: dict = {}
+
+    def unquote(s: str) -> str:
+        # Only strip quotes that actually wrap the whole value — a leading or
+        # trailing quote that's part of the real content (e.g. a title like
+        # `"Attention Is All You Need"를 읽다가...`) must survive untouched.
+        if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+            return s[1:-1]
+        return s
+
     for line in fm_text.strip().splitlines():
         if not line.strip() or ":" not in line:
             continue
@@ -49,9 +58,9 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
         value = value.strip()
         if key == "tags":
             inner = value.strip("[]")
-            fields[key] = [t.strip().strip('"').strip("'") for t in inner.split(",") if t.strip()]
+            fields[key] = [unquote(t.strip()) for t in inner.split(",") if t.strip()]
         else:
-            fields[key] = value.strip('"').strip("'")
+            fields[key] = unquote(value)
     return fields, body.lstrip("\n")
 
 
