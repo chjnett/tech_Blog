@@ -5,7 +5,7 @@
 ![Node.js 18+](https://img.shields.io/badge/Node.js-18+-green.svg)
 ![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)
 
-**Live**: [chjnett.dev](https://chjnett.dev)
+**Live**: [chjnett.dev](https://tech-blog-worker.cheonhyeonjun583.workers.dev)
 
 개인 기술 블로그 + 포트폴리오. Cloudflare 생태계(Pages, Workers, D1, R2)로 구축한 풀스택 블로깅 플랫폼입니다.
 
