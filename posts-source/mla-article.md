@@ -163,6 +163,8 @@ Measured values (seq_len=1024)
 
 **KV 캐시 메모리** — 이론값과 실측값이 **정확히 일치**:
 
+![Fig 1 — 컨텍스트 길이별 KV 캐시 메모리 (로그 스케일). MHA는 131K에서 1,611 MB, MQA는 201 MB로 8배 차이.](/posts-assets/mla-article/fig1_kv_cache_vs_seqlen.png)
+
 | 구성 | seq_len=512 | seq_len=4K | seq_len=32K | seq_len=131K |
 |---|---:|---:|---:|---:|
 | MHA (n_kv=8) | 6.29 MB | 50.33 MB | 402.65 MB | 1,610.61 MB |
@@ -178,6 +180,8 @@ Measured values (seq_len=1024)
 | GQA-4 (n_kv=4) | 1,426.7 | 893.9 | 613.8 | 0.94× |
 | GQA-2 (n_kv=2) | 1,450.2 | 1,066.6 | 668.3 | 1.03× |
 | MQA (n_kv=1) | 1,557.4 | 1,358.7 | **824.0** | **1.27×** |
+
+![Fig 2 — 프롬프트 길이별 추론 속도. 컨텍스트가 길어질수록 KV 헤드 수가 적은 구성이 유리해진다.](/posts-assets/mla-article/fig2_inference_speed.png)
 
 컨텍스트가 1024로 길어지자 MQA가 MHA 대비 1.27배 빨라졌다. CPU 환경이라 절댓값은 낮지만, 방향은 명확하다. 실제 GPU HBM 대역폭에서, 그리고 128K 컨텍스트에서는 이 격차가 훨씬 극적으로 벌어진다.
 
@@ -218,6 +222,10 @@ $ .venv/bin/python3 scripts/mla_train_sanity.py
 흥미로운 점은 실험 설정상 **MLA의 KV 캐시가 GQA-4보다 오히려 4배 작다**는 사실이다 (latent_dim=32 vs n_kv_head=4×head_dim=64). 더 적은 캐시 메모리로 더 낮은 Loss를 달성했다는 뜻이다.
 
 실제 Loss 수렴 경로를 100스텝 단위로 시각화하면 이렇다.
+
+![Fig 3 — GQA-4 vs MLA Loss 수렴 곡선. step 100 이후 MLA가 뚜렷하게 갈라져 최종 0.32 낮은 Loss로 수렴.](/posts-assets/mla-article/fig3_loss_convergence.png)
+
+![Fig 4 — KV 캐시 크기 직접 비교. MLA(32K bytes)는 GQA-4(131K bytes)의 25% 수준.](/posts-assets/mla-article/fig4_cache_comparison.png)
 
 ```figure
 {"type":"flow","caption":"GQA-4 vs MLA Loss 수렴 경로 — 초반은 동일하게 시작하지만 100스텝 이후 MLA가 갈라진다","nodes":[{"id":"start","label":"step 0","note":"초기 Loss ≈ 2.35 (무작위 예측 수준)"},{"id":"s1_gqa","label":"GQA step 1–100","note":"avg Loss: 2.323"},{"id":"s1_mla","label":"MLA step 1–100","note":"avg Loss: 2.319 (거의 동일)"},{"id":"s2_gqa","label":"GQA step 101–200","note":"avg Loss: 2.223"},{"id":"s2_mla","label":"MLA step 101–200","note":"avg Loss: 1.963 (차이 시작)","emphasis":true},{"id":"s3_gqa","label":"GQA step 201–300","note":"최종 avg Loss: 1.623"},{"id":"s3_mla","label":"MLA step 201–300","note":"최종 avg Loss: 1.307 (△0.32 낮음)","emphasis":true}],"edges":[{"from":"start","to":"s1_gqa"},{"from":"start","to":"s1_mla"},{"from":"s1_gqa","to":"s2_gqa"},{"from":"s1_mla","to":"s2_mla"},{"from":"s2_gqa","to":"s3_gqa"},{"from":"s2_mla","to":"s3_mla"}]}
