@@ -25,11 +25,13 @@ renderer.code = (token: Tokens.Code) => {
     <button class="copy-btn">copy</button>
   </div>
   <pre><code>${html}</code></pre>
+  <button class="code-expand" type="button" hidden>더 보기</button>
 </div>`;
 };
 
 marked.use({ renderer, useNewRenderer: true });
 
 export function renderMarkdown(md: string): string {
-  return marked.parse(md) as string;
+  const html = marked.parse(md) as string;
+  return html.replace(/<table>/g, '<div class="table-wrap"><table>').replace(/<\/table>/g, '</table></div>');
 }

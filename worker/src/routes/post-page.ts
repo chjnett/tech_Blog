@@ -61,6 +61,24 @@ export async function handlePostPage(db: D1Database, slug: string): Promise<Resp
 ${renderMarkdown(row.content_md)}
 </article>
 
+<script>
+  document.querySelectorAll('.code-block').forEach((block) => {
+    const pre = block.querySelector('pre');
+    const button = block.querySelector('.code-expand');
+    if (!pre || !button) return;
+    if (pre.scrollHeight <= 420) return;
+
+    block.classList.add('collapsed');
+    button.hidden = false;
+    button.textContent = '더 보기';
+
+    button.addEventListener('click', () => {
+      const collapsed = block.classList.toggle('collapsed');
+      button.textContent = collapsed ? '더 보기' : '접기';
+    });
+  });
+</script>
+
 </body>
 </html>`;
 
