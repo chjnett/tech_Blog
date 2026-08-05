@@ -255,7 +255,7 @@ GQA는 MHA의 메모리 병목을 현실적인 타협점에서 해소했다. 오
 
 ---
 
-*이 글에 사용된 코드(`model.py`, `scripts/benchmark_gqa_mla.py`, `scripts/mla_train_sanity.py`)는 GPU 없이 CPU만으로 재현 가능하다.*
+*이 글에 사용된 코드(`model.py`, `scripts/benchmark_gqa_mla.py`, `scripts/mla_train_sanity.py`)는 [GitHub 리포지토리](https://github.com/chjnett/tech_Blog)에서 확인하실 수 있으며, GPU 없이 CPU만으로 재현 가능하다.*
 
 *References:*
 
