@@ -59,6 +59,9 @@
 ## 2. 콘텐츠 컴포넌트 3종
 
 레퍼런스 구현: [`exBlog.html`](../exBlog.html) (예시 아티클 페이지, 세 컴포넌트 모두 포함).
+실제로 글을 쓸 때 참고할 실용 가이드(frontmatter, 문법, 체크리스트)는
+[`posts-source/README.md`](../posts-source/README.md) — 이 섹션은 "왜/무엇을", 그
+파일은 "어떻게" 담당.
 
 ### 2.1 코드 블록 — `code`
 
