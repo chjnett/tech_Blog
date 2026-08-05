@@ -8,8 +8,11 @@
 
 ## 블로킹 / 결정 필요
 
-- [ ] **프로덕션 도메인 미정.** `worker/wrangler.toml`의 `routes`/`SITE_URL`이
-      `<YOUR_DOMAIN>` 플레이스홀더 — `wrangler deploy` 전에만 필요 (로컬 개발엔 불필요).
+- [x] ~~프로덕션 도메인 미정~~ — 완료. 커스텀 도메인 대신 무료 `workers.dev` 서브도메인으로
+      배포함 (`https://tech-blog-worker.cheonhyeonjun583.workers.dev`). zone 기반
+      `[[routes]]` 3개는 workers.dev에서 작동하지 않아 제거하고 `workers_dev = true`로
+      전환 — `[assets]`가 이미 설정돼 있어 `/api/*`, `/rss.xml`, `/posts/*`는 자동으로
+      Worker 코드로 폴백된다. 커스텀 도메인을 나중에 붙이려면 `[[routes]]`를 다시 추가하면 됨.
 - [x] ~~ponytail 플러그인 설치~~ — 완료.
 
 ---
