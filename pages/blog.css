@@ -249,6 +249,13 @@ a{color:var(--ink);}
   background:#fff;
 }
 .figure-block svg{width:100%; height:auto; display:block;}
+.fig-image{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:6px;
+  object-fit:contain;
+}
 .figure-caption{
   font-family:var(--mono);
   font-size:12.5px;
