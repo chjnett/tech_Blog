@@ -9,11 +9,11 @@ source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/mla-arti
 
 ## 1부. GQA로 만족할 수 없었던 이유, 그리고 TransMLA를 만나다
 
-이전 글에서 GQA(Grouped-Query Attention)로 KV 캐시를 1/4로 줄이는 데 성공했다. 서빙 메모리 병목은 어느 정도 해소됐지만, 최신 모델들은 거기서 멈추지 않았다. DeepSeek-V2/V3, DeepSeek-R1이 채택한 **Multi-head Latent Attention(MLA)** 은 KV를 헤드 단위로 줄이는 게 아니라 아예 저랭크 잠재 공간으로 압축해버린다. 접근 자체가 다르다.
+이전 글에서 <span class="tooltip" data-tooltip="(Grouped-Query Attention) 쿼리 헤드들을 그룹으로 묶어 K, V 헤드를 공유" tabindex="0">GQA</span>(Grouped-Query Attention)로 KV 캐시를 1/4로 줄이는 데 성공했다. 서빙 메모리 병목은 어느 정도 해소됐지만, 최신 모델들은 거기서 멈추지 않았다. DeepSeek-V2/V3, DeepSeek-R1이 채택한 **Multi-head Latent Attention(<span class="tooltip" data-tooltip="(Multi-head Latent Attention) K, V를 저랭크 잠재 공간으로 압축하는 어텐션" tabindex="0">MLA</span>)** 은 KV를 헤드 단위로 줄이는 게 아니라 아예 저랭크 잠재 공간으로 압축해버린다. 접근 자체가 다르다.
 
 논문 "TransMLA: MLA Is All You Need"를 읽으면서 두 가지에 충격을 받았다[cite: 1].
 
-첫째, **동일한 KV 캐시 용량이라면 MLA는 GQA보다 수학적으로 항상 더 높은 Expressive Power를 보장한다**. 이건 경험적인 관찰이 아니라 정리(theorem)로 증명된다. GQA가 MLA의 특수 케이스에 속한다는 뜻이기도 하다[cite: 1].
+첫째, **동일한 <span class="tooltip" data-tooltip="(Key-Value Cache) 이전 토큰들의 K, V 벡터를 메모리에 저장해 재계산 방지" tabindex="0">KV 캐시</span> 용량이라면 MLA는 GQA보다 수학적으로 항상 더 높은 Expressive Power를 보장한다**. 이건 경험적인 관찰이 아니라 정리(theorem)로 증명된다. GQA가 MLA의 특수 케이스에 속한다는 뜻이기도 하다[cite: 1].
 
 둘째, 수백억짜리 GQA 모델을 처음부터 다시 학습시킬 필요 없이 MLA로 **개조(transplant)**할 수 있다는 아이디어다. RoPE 처리 방식을 바꾸고 KV를 저랭크로 재구성하면, 기존 가중치를 대부분 살릴 수 있다[cite: 1]. 이 발상이 실용적으로 얼마나 중요한지는 학습 비용을 생각하면 바로 감이 온다.
 
@@ -69,7 +69,7 @@ LLaMA-3 8B에서 실제로 측정된 Key L2-Norm 분포가 어떤 모습인지�
 기존 `CausalSelfAttention` 대신 `MLASelfAttention`을 만들었다. 차이는 명확하다.
 
 - **GQA**: K/V를 `n_kv_head`개의 헤드로 직접 프로젝션. 캐시에는 `(K, V)` 텐서 저장.
-- **MLA**: K/V를 `latent_dim` 차원의 잠재 벡터 `c_kv`로 **Down-projection**. 캐시에는 `c_kv`만 저장. 추론 시 **Up-projection**으로 K, V를 복원.
+- **MLA**: K/V를 `latent_dim` 차원의 잠재 벡터 `c_kv`로 **Down-projection**. 캐시에는 `c_kv`만 저장. 추론 시 **<span class="tooltip" data-tooltip="잠재 벡터(Latent Vector)를 원래 차원 크기의 K, V 행렬로 복원하는 선형 변환" tabindex="0">Up-projection</span>**으로 K, V를 복원.
 
 차원이 어떻게 흐르는지를 수치로 보면 압축 효과가 바로 드러난다. 실험 환경 기준(n_embd=128, n_head=8, head_dim=16, latent_dim=32)으로 추적했다.
 
@@ -156,10 +156,11 @@ Measured values (seq_len=1024)
 
 | 구성 | 파라미터 수 | 비율 (MHA 대비) |
 |---|---:|---:|
-| MHA (n_kv=8) | 5,787,136 | 1.00× |
+| <span class="tooltip" data-tooltip="(Multi-Head Attention) 쿼리마다 독립적인 K, V 헤드를 갖는 기본 어텐션" tabindex="0">MHA</span> (n_kv=8) | 5,787,136 | 1.00× |
 | GQA-4 (n_kv=4) | 5,393,920 | 0.93× |
 | GQA-2 (n_kv=2) | 5,197,312 | 0.90× |
-| MQA (n_kv=1) | 5,099,008 | 0.88× |
+| MLA (latent=32) | 5,148,160 | 0.89× |
+| <span class="tooltip" data-tooltip="(Multi-Query Attention) 모든 쿼리 헤드가 단 1개의 K, V 헤드를 공유" tabindex="0">MQA</span> (n_kv=1) | 5,099,008 | 0.88× |
 
 **KV 캐시 메모리** — 이론값과 실측값이 **정확히 일치**:
 
@@ -167,19 +168,21 @@ Measured values (seq_len=1024)
 
 | 구성 | seq_len=512 | seq_len=4K | seq_len=32K | seq_len=131K |
 |---|---:|---:|---:|---:|
-| MHA (n_kv=8) | 6.29 MB | 50.33 MB | 402.65 MB | 1,610.61 MB |
-| GQA-4 (n_kv=4) | 3.15 MB | 25.17 MB | 201.33 MB | 805.31 MB |
-| GQA-2 (n_kv=2) | 1.57 MB | 12.58 MB | 100.66 MB | 402.65 MB |
-| MQA (n_kv=1) | 0.79 MB | 6.29 MB | 50.33 MB | 201.33 MB |
+| MHA (n_kv=8) | 6.00 MB | 48.00 MB | 384.00 MB | 1,536.00 MB |
+| GQA-4 (n_kv=4) | 3.00 MB | 24.00 MB | 192.00 MB | 768.00 MB |
+| GQA-2 (n_kv=2) | 1.50 MB | 12.00 MB | 96.00 MB | 384.00 MB |
+| MQA (n_kv=1) | 0.75 MB | 6.00 MB | 48.00 MB | 192.00 MB |
+| MLA (latent=32) | 0.38 MB | 3.00 MB | 24.00 MB | 96.00 MB |
 
 **추론 속도** (tokens/sec, KV 캐시 사용):
 
 | 구성 | prompt=64 | prompt=256 | prompt=1024 | 1024 기준 MHA 대비 |
 |---|---:|---:|---:|---:|
-| MHA (n_kv=8) | 1,329.0 | 1,003.9 | 649.5 | 1.00× |
-| GQA-4 (n_kv=4) | 1,426.7 | 893.9 | 613.8 | 0.94× |
-| GQA-2 (n_kv=2) | 1,450.2 | 1,066.6 | 668.3 | 1.03× |
-| MQA (n_kv=1) | 1,557.4 | 1,358.7 | **824.0** | **1.27×** |
+| MHA (n_kv=8) | 1,394.8 | 1,028.4 | 664.8 | 1.00× |
+| GQA-4 (n_kv=4) | 1,433.6 | 909.8 | 608.5 | 0.92× |
+| GQA-2 (n_kv=2) | 1,528.6 | 1,074.4 | 663.2 | 1.00× |
+| MLA (latent=32) | 1,597.4 | 1,324.1 | 740.0 | 1.11× |
+| MQA (n_kv=1) | 1,579.9 | 1,384.1 | 825.8 | 1.24× |
 
 ![Fig 2 — 프롬프트 길이별 추론 속도. 컨텍스트가 길어질수록 KV 헤드 수가 적은 구성이 유리해진다.](/posts-assets/mla-article/fig2_inference_speed.png)
 
@@ -217,7 +220,7 @@ $ .venv/bin/python3 scripts/mla_train_sanity.py
 | step 101–200 | 2.2227 | 1.9628 | **−0.2599** |
 | step 201–300 | 1.6234 | 1.3068 | **−0.3166** |
 
-초반 100스텝은 둘 다 비슷하게 시작한다. 하지만 101스텝부터 MLA가 뚜렷하게 갈라지기 시작해, 300스텝 시점에서 GQA-4 대비 0.32 낮은 Loss(언어 모델의 성능 지표인 <span class="tooltip" data-tooltip="Perplexity = e^Loss">퍼플렉시티</span>와 직결됨)로 수렴했다.
+초반 100스텝은 둘 다 비슷하게 시작한다. 하지만 101스텝부터 MLA가 뚜렷하게 갈라지기 시작해, 300스텝 시점에서 GQA-4 대비 0.32 낮은 Loss(언어 모델의 성능 지표인 <span class="tooltip" tabindex="0" data-tooltip="Perplexity = e^Loss">퍼플렉시티</span>와 직결됨)로 수렴했다.
 
 흥미로운 점은 실험 설정상 **MLA의 KV 캐시가 GQA-4보다 오히려 4배 작다**는 사실이다 (latent_dim=32 vs n_kv_head=4×head_dim=64). 더 적은 캐시 메모리로 더 낮은 Loss를 달성했다는 뜻이다.
 

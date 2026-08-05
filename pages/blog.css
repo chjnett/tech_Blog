@@ -284,6 +284,7 @@ a{color:var(--ink);}
   cursor: help;
   border-bottom: 1px dashed var(--ink-soft);
   color: inherit;
+  outline: none; /* Remove focus outline */
 }
 .tooltip::after {
   content: attr(data-tooltip);
@@ -322,11 +323,17 @@ a{color:var(--ink);}
   z-index: 100;
 }
 .tooltip:hover::after,
-.tooltip:hover::before {
+.tooltip:hover::before,
+.tooltip:focus::after,
+.tooltip:focus::before,
+.tooltip:active::after,
+.tooltip:active::before {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
 }
-.tooltip:hover::after {
+.tooltip:hover::after,
+.tooltip:focus::after,
+.tooltip:active::after {
   transform: translateX(-50%) translateY(-6px);
 }

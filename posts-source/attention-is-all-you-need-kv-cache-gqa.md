@@ -21,15 +21,15 @@ source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/attentio
 
 ## 2부. 병목을 발견하다: 학습과 추론은 다른 게임이다
 
-논문은 학습(training) 관점에서 쓰여 있다. 8개의 P100 GPU로 12시간 학습했다는 이야기가 나온다. 그런데 오늘날 GPT, LLaMA 같은 모델을 실제로 서빙할 때 문제가 되는 건 학습이 아니라 **자기회귀 디코딩(autoregressive decoding)**이다.
+논문은 학습(training) 관점에서 쓰여 있다. 8개의 P100 GPU로 12시간 학습했다는 이야기가 나온다. 그런데 오늘날 GPT, LLaMA 같은 모델을 실제로 서빙할 때 문제가 되는 건 학습이 아니라 **<span class="tooltip" data-tooltip="(Autoregressive Decoding) 이전 토큰들로 다음 토큰을 하나씩 순차 예측" tabindex="0">자기회귀 디코딩</span>(autoregressive decoding)**이다.
 
-디코더는 토큰을 하나씩 생성한다. `n`번째 토큰을 생성하려면 `1`번부터 `n-1`번째 토큰까지의 Key, Value 벡터가 다시 필요하다. 매번 처음부터 다시 계산하면 너무 느리니까, 실제 서빙 시스템은 이전 토큰들의 K, V를 **KV 캐시**에 저장해두고 재사용한다.
+디코더는 토큰을 하나씩 생성한다. `n`번째 토큰을 생성하려면 `1`번부터 `n-1`번째 토큰까지의 Key, Value 벡터가 다시 필요하다. 매번 처음부터 다시 계산하면 너무 느리니까, 실제 서빙 시스템은 이전 토큰들의 K, V를 **<span class="tooltip" data-tooltip="(Key-Value Cache) 이전 토큰들의 K, V 벡터를 메모리에 저장해 재계산 방지" tabindex="0">KV 캐시</span>**에 저장해두고 재사용한다.
 
 문제는 이 캐시 크기다. 멀티헤드 어텐션은 헤드마다 독립적인 K, V를 가지므로, 캐시해야 할 벡터 수가 `레이어 수 × 헤드 수 × 시퀀스 길이`에 비례해서 커진다. 그리고 토큰을 하나 생성할 때마다 이 캐시 전체를 GPU 메모리에서 읽어야 한다. **연산량이 아니라 이 메모리 읽기(bandwidth)가 실제 병목**이라는 걸 알게 됐다.
 
 직접 숫자로 확인해봤다. LLaMA-7B 정도 크기(레이어 32개, `d_model=4096`, 헤드 32개, `head_dim=128`)를 가정하고, fp16으로 배치 1일 때 KV 캐시 크기를 계산했다.
 
-| 시퀀스 길이 | MHA (32 KV 헤드) | GQA (8 KV 헤드) | GQA (4 KV 헤드) | MQA (1 KV 헤드) |
+| 시퀀스 길이 | <span class="tooltip" data-tooltip="(Multi-Head Attention) 쿼리마다 독립적인 K, V 헤드를 갖는 기본 어텐션" tabindex="0">MHA</span> (32 KV 헤드) | GQA (8 KV 헤드) | <span class="tooltip" data-tooltip="(Grouped-Query Attention) 쿼리 헤드들을 그룹으로 묶어 K, V 헤드를 공유" tabindex="0">GQA</span> (4 KV 헤드) | MQA (1 KV 헤드) |
 |---:|---:|---:|---:|---:|
 | 2,048 | 1.00 GB | 0.25 GB | 0.12 GB | 0.03 GB |
 | 8,192 | 4.00 GB | 1.00 GB | 0.50 GB | 0.12 GB |
@@ -404,7 +404,7 @@ if __name__ == "__main__":
 | MHA (n_kv=8) | 5,787,136 |
 | GQA-4 (n_kv=4) | 5,393,920 |
 | GQA-2 (n_kv=2) | 5,197,312 |
-| MQA (n_kv=1) | 5,099,008 |
+| <span class="tooltip" data-tooltip="(Multi-Query Attention) 모든 쿼리 헤드가 단 1개의 K, V 헤드를 공유" tabindex="0">MQA</span> (n_kv=1) | 5,099,008 |
 
 KV 캐시 메모리 — **실측값이 이론값과 정확히 일치했다**:
 
@@ -509,7 +509,7 @@ if __name__ == "__main__":
 
 ![Fig 4 — 학습 sanity check. 세 구성 모두 300 스텝 안에 2.3 → 1.0~1.2대로 정상 수렴. MHA가 가장 낮지만 차이는 근소하다.](/posts-assets/attention-is-all-you-need-kv-cache-gqa/fig4_loss_sanity.png)
 
-세 구성 모두 300 스텝 만에 무작위 예측 수준(2.303)에서 1.0~1.2 근처까지 정상적으로 수렴했다 — "동작은 제대로 한다"는 sanity check를 통과했다. Loss가 낮아질수록 언어 모델의 지표인 <span class="tooltip" data-tooltip="Perplexity = e^Loss">퍼플렉시티</span>도 개선됨을 의미한다. MHA가 가장 낮고 GQA/MQA가 근소하게 뒤처지는 것도, 실제 논문·실무에서 보고되는 "GQA/MQA는 약간의 품질 손실이 있지만 크지 않다"는 경향과 방향이 일치한다.
+세 구성 모두 300 스텝 만에 무작위 예측 수준(2.303)에서 1.0~1.2 근처까지 정상적으로 수렴했다 — "동작은 제대로 한다"는 sanity check를 통과했다. Loss가 낮아질수록 언어 모델의 지표인 <span class="tooltip" tabindex="0" data-tooltip="Perplexity = e^Loss">퍼플렉시티</span>도 개선됨을 의미한다. MHA가 가장 낮고 GQA/MQA가 근소하게 뒤처지는 것도, 실제 논문·실무에서 보고되는 "GQA/MQA는 약간의 품질 손실이 있지만 크지 않다"는 경향과 방향이 일치한다.
 
 세 가지 구성의 품질 vs 속도 트레이드오프를 한 줄로 정리하면 이렇다.
 

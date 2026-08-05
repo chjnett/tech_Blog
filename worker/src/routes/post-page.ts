@@ -58,7 +58,7 @@ export async function handlePostPage(db: D1Database, slug: string): Promise<Resp
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/blog.css">
+<link rel="stylesheet" href="/blog.css?v=2">
 </head>
 <body>
 
