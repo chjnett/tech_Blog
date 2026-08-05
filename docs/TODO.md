@@ -14,6 +14,10 @@
       전환 — `[assets]`가 이미 설정돼 있어 `/api/*`, `/rss.xml`, `/posts/*`는 자동으로
       Worker 코드로 폴백된다. 커스텀 도메인을 나중에 붙이려면 `[[routes]]`를 다시 추가하면 됨.
 - [x] ~~ponytail 플러그인 설치~~ — 완료.
+- [x] ~~프로덕션 D1에 데이터 없음~~ — 완료. 로컬(`--local`)과 원격(`--remote`) D1은
+      완전히 별개 데이터베이스라, 로컬에서 `wrangler dev`로 확인한 게 배포 사이트에
+      자동으로 반영되지 않는다. `scripts/sync-post.py <파일> --remote`로 프로덕션에도
+      반드시 동기화해야 함 — 새 글을 publish할 때마다 로컬+원격 둘 다 sync 잊지 말 것.
 
 ---
 
@@ -30,19 +34,26 @@ Plan: [`2026-08-02-blog-phase1-foundation.md`](superpowers/plans/2026-08-02-blog
 - [x] Task 6: Prism.js 코드 블록 신택스 하이라이팅
 - [x] Task 7: `pages/` 이동 + 공유 디자인 토큰 + Worker Routes
 
-로컬 D1에 실제 글 1편(`attention-is-all-you-need-kv-cache-gqa`)을 넣어 전체 파이프라인
-(마크다운 → Prism 하이라이팅 → JSON API)을 검증함. 예쁜 페이지로 보려면 아래 "포스트 상세
-페이지 템플릿" 항목이 필요 — 현재는 `/api/posts/:slug`로 JSON만 확인 가능.
+`https://tech-blog-worker.cheonhyeonjun583.workers.dev`에 실제로 배포됨. 프로덕션 D1에
+실제 글 2편(`attention-is-all-you-need-kv-cache-gqa`, `writing-with-code-terminal-figure-blocks`)
+published 상태로 들어가 있고 홈/개별 페이지/RSS 전부 확인됨.
 
-## Phase 1.5 — figure 블록 렌더러 + 포스트 상세 페이지 — 스펙 완료, 플랜 미작성
+## Phase 1.5 — figure 블록 렌더러 + 포스트 상세 페이지 — 완료
 
 Spec: [`2026-08-02-figure-block-and-post-page-design.md`](superpowers/specs/2026-08-02-figure-block-and-post-page-design.md)
 
-- [ ] `writing-plans`로 구현 플랜 작성
-- [ ] `worker/src/figure.ts` — JSON→SVG 레이어드 자동 배치 렌더러 (`emphasis` 필드, flow/compare/stack)
-- [ ] `GET /posts/:slug` Worker SSR 라우트 (article 셸 + `/mark.jpg` 로고)
-- [ ] `pages/blog.css` — code/terminal/figure 공유 스타일시트, Prism 토큰 → 4색 매핑
-- [ ] `worker/wrangler.toml`에 `/posts/*` Worker Route 추가
+- [x] `worker/src/figure.ts` + `figure-layout.ts` — JSON→SVG 레이어드 자동 배치 렌더러
+      (`emphasis` 필드, flow/compare/stack)
+- [x] `worker/src/figure-groups.ts` — 4번째 figure 타입 `groups` 추가 (Q/KV 헤드
+      공유 비교류 다이어그램, 원래 계획엔 없었지만 실제 글 요청으로 확장)
+- [x] `GET /posts/:slug` Worker SSR 라우트 (article 셸 + `/mark.jpg` 로고 + 하단
+      "전체 코드 보기" 푸터)
+- [x] `pages/blog.css` — code/terminal/figure 공유 스타일시트, Prism 토큰 → 4색 매핑,
+      코드 블록 접기/펼치기 + 고정 뷰포트(520px), 표 스타일
+- [x] `worker/wrangler.toml`에 `/posts/*` Worker Route 추가 (이후 workers.dev 배포로
+      전환하면서 zone 기반 라우트는 다시 제거됨 — 위 블로킹 항목 참고)
+- [x] `posts-source/<slug>.md` + `scripts/sync-post.py` — frontmatter 기반 직접 편집
+      워크플로우. 사용법은 [`posts-source/README.md`](../posts-source/README.md)
 
 ## Phase 2 — 리뷰 대시보드 — 미착수 (스펙 없음)
 
