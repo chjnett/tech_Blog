@@ -100,7 +100,7 @@ L-PBF(Laser Powder Bed Fusion) 논문에서 본 접근법:
 
 **아키텍처**:
 
-![Architecture](/posts-assets/industrial-rag-multimodal/results/figures/05_architecture_diagram.png)
+![Architecture](/posts-assets/industrial-rag-multimodal/05_architecture_diagram.png)
 
 파이프라인 흐름:
 1. 결함 이미지 → CLIP Vision Encoder → 임베딩 벡터
@@ -220,7 +220,7 @@ similarities = cosine_similarity(image_emb, text_embeddings)
 
 **Figure 1: 이미지 검색 성능 (실제 CLIP 모델)**
 
-![Image Retrieval Performance](/posts-assets/industrial-rag-multimodal/results/figures/01_image_retrieval_performance.png)
+![Image Retrieval Performance](/posts-assets/industrial-rag-multimodal/01_image_retrieval_performance.png)
 
 Recall@1: **95%** | Recall@5: **100%** (완벽한 성능) | Recall@10: 100%
 - 실제 계산: 20개 이미지, 4가지 결함 유형
@@ -228,7 +228,7 @@ Recall@1: **95%** | Recall@5: **100%** (완벽한 성능) | Recall@10: 100%
 
 **Figure 2: 이미지-문서 유사도 분포**
 
-![Similarity Distribution](/posts-assets/industrial-rag-multimodal/results/figures/02_similarity_distribution.png)
+![Similarity Distribution](/posts-assets/industrial-rag-multimodal/02_similarity_distribution.png)
 
 평균: **0.236** | 표준편차: 0.011 | 범위: 0.208 ~ 0.259
 - 일반 CLIP의 한계를 보여줌
@@ -236,7 +236,7 @@ Recall@1: **95%** | Recall@5: **100%** (완벽한 성능) | Recall@10: 100%
 
 **Figure 3: 방법론 비교 (정확도, 속도, 효율성)**
 
-![Benchmark Comparison](/posts-assets/industrial-rag-multimodal/results/figures/03_benchmark_comparison.png)
+![Benchmark Comparison](/posts-assets/industrial-rag-multimodal/03_benchmark_comparison.png)
 
 정확도: Text RAG (45%) < CLIP/Hybrid (100%)
 속도: Text RAG (500ms) >> CLIP (45ms) > Hybrid (80ms)
