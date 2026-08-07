@@ -1,0 +1,22 @@
+{
+  "image_retrieval": {
+    "recall_top5": 0.84,
+    "recall_top10": 0.9,
+    "avg_search_time_ms": 45,
+    "assessment": "\u2713 GOOD"
+  },
+  "hybrid_search": {
+    "avg_similarity": 0.63,
+    "assessment": "\u25b3 MODERATE (\ub3c4\uba54\uc778 \ud2b9\ud654 \ud559\uc2b5 \ud544\uc694)"
+  },
+  "Strengths": [
+    "\uc774\ubbf8\uc9c0 \uae30\ubc18 \uacb0\ud568 \uac80\uc0c9 \ud6a8\uacfc\uc801 (Recall@5: 84%)",
+    "Zero-shot \ud559\uc2b5 (\ub77c\ubca8\ub9c1 \ub370\uc774\ud130 \ubd88\ud544\uc694)",
+    "\uc2e4\uc2dc\uac04 \uac80\uc0c9 \uac00\ub2a5 (<50ms)"
+  ],
+  "Limitations": [
+    "\ubcf5\uc7a1\ud55c \ubb38\uc11c \uad6c\uc870 \ubbf8\uc9c0\uc6d0 (\ud45c, \ucc28\ud2b8)",
+    "\ud558\uc774\ube0c\ub9ac\ub4dc \uc815\ud655\ub3c4\ub294 \uc784\ubca0\ub529 \ud488\uc9c8\uc5d0 \uc758\uc874",
+    "\ub3c4\uba54\uc778 \ud2b9\ud654 \ud559\uc2b5 \ud544\uc694 (Fine-tuning)"
+  ]
+}

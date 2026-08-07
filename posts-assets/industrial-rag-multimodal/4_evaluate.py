@@ -202,7 +202,7 @@ print(f"""
 ✓ Image Search: {image_results['recall_top5']:.1%} Recall@5
 ✓ Hybrid Search: {avg_sim:.3f} avg similarity to documents
 ✓ Speed: {image_results['mean_search_time']*1000:.0f}ms per query
-✓ Scalability: {len(image_results['queries'])}+ images searchable
+✓ Scalability: {image_results['queries']}+ images searchable
 
 Next: python 5_visualize.py
 """)
