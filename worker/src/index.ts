@@ -1,6 +1,7 @@
 import { handleListPosts, handleGetPostBySlug } from './routes/posts';
 import { handleRss } from './routes/rss';
 import { handlePostPage } from './routes/post-page';
+import { handlePublishPost } from './routes/admin';
 
 export interface Env {
   DB: D1Database;
@@ -28,6 +29,11 @@ export default {
       const postPageMatch = pathname.match(/^\/posts\/([^/]+)$/);
       if (postPageMatch && request.method === 'GET') {
         return await handlePostPage(env.DB, postPageMatch[1]);
+      }
+
+      if (pathname === '/admin/publish' && request.method === 'POST') {
+        const body = await request.json();
+        return await handlePublishPost(env.DB, body);
       }
 
       return Response.json({ error: 'not found' }, { status: 404 });
