@@ -3,7 +3,7 @@ slug: industrial-rag-multimodal
 title: "산업 현장 데이터는 텍스트만이 아니다 — 이미지+문서 하이브리드 RAG 구현기"
 excerpt: "GQA/MLA 이후의 다음 단계. 실제 제조현장 데이터(결함 이미지 + 기술 매뉴얼)를 CLIP 멀티모달 검색으로 통합하고, 비용-정확도 트레이드오프를 분석한 기록. 라벨 없는 이상탐지와 하이브리드 문서 연결까지."
 tags: [rag, multimodal, clip, industrial, defect-detection, hybrid-search, production]
-status: draft
+status: published
 source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/industrial-rag-multimodal
 ---
 
