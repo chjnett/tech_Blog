@@ -266,7 +266,7 @@ INDUSTRIAL MULTIMODAL RAG - RESULTS SUMMARY
 
 DATASET
 -------
-Total Images Processed: {len(image_results['queries'])}
+Total Images Processed: {image_results['queries']}
 Total Documents Processed: {len(doc_results['image_to_documents'])}
 Text Segments: {len(doc_results['image_to_documents']) * 5}  (avg 5 per image)
 
@@ -284,7 +284,7 @@ Assessment: {eval_report['hybrid_search']['assessment']}
 
 PERFORMANCE METRICS
 -------------------
-Images Processed: {len(image_results['queries'])}
+Images Processed: {image_results['queries']}
 Documents Linked: {len(doc_results['image_to_documents'])}
 Mean Inference Time: {image_results['mean_search_time']*1000:.1f}ms
 Memory Footprint: ~50MB (embeddings)

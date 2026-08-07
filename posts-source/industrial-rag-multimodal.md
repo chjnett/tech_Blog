@@ -96,16 +96,14 @@ L-PBF(Laser Powder Bed Fusion) 논문에서 본 접근법:
 - CLIP은 이미지와 텍스트를 **같은 벡터 공간에 임베딩**
 - 이미지 임베딩과 텍스트 임베딩을 비교 → 유사도 점수
 
-**파이프라인**:
+**아키텍처**:
 
-```
-결함 이미지 → CLIP Vision Encoder → 임베딩 벡터
-                                        ↓
-                          Cosine Similarity 계산
-                                        ↓
-기술 매뉴얼 PDF → CLIP Text Encoder → 임베딩 벡터
-                   (문장 단위)
-```
+![Architecture](https://raw.githubusercontent.com/chjnett/tech_Blog/main/posts-assets/industrial-rag-multimodal/results/figures/05_architecture_diagram.png)
+
+파이프라인 흐름:
+1. 결함 이미지 → CLIP Vision Encoder → 임베딩 벡터
+2. 기술 매뉴얼 PDF (문장 단위) → CLIP Text Encoder → 임베딩 벡터
+3. Cosine Similarity 계산 → 상위 K개 관련 문서 추천
 
 ### 3-3. 실험 결과
 
@@ -215,28 +213,25 @@ similarities = cosine_similarity(image_emb, text_embeddings)
 
 ### 실제 성능 지표
 
-생성된 Figure들:
-
 **Figure 1: 이미지 검색 성능**
-```
-Recall@1:  70%
-Recall@5:  84% ← 가장 중요한 지표
-Recall@10: 90%
-```
+
+![Image Retrieval Performance](https://raw.githubusercontent.com/chjnett/tech_Blog/main/posts-assets/industrial-rag-multimodal/results/figures/01_image_retrieval_performance.png)
+
+Recall@1: 70% | Recall@5: **84%** (가장 중요한 지표) | Recall@10: 90%
 
 **Figure 2: 유사도 분포**
-```
-평균: 0.63
-표준편차: 0.11
-범위: 0.42 ~ 0.82
-```
 
-**Figure 3: 방법론 비교**
-```
-정확도:    Text RAG (45%) < CLIP/Hybrid (84%)
-속도:      Text RAG (500ms) >> CLIP (45ms) > Hybrid (80ms)
-복잡도:    CLIP (1) < Hybrid (2.5) < Text RAG (2)
-```
+![Similarity Distribution](https://raw.githubusercontent.com/chjnett/tech_Blog/main/posts-assets/industrial-rag-multimodal/results/figures/02_similarity_distribution.png)
+
+평균: 0.63 | 표준편차: 0.11 | 범위: 0.42 ~ 0.82
+
+**Figure 3: 방법론 비교 (정확도, 속도, 효율성)**
+
+![Benchmark Comparison](https://raw.githubusercontent.com/chjnett/tech_Blog/main/posts-assets/industrial-rag-multimodal/results/figures/03_benchmark_comparison.png)
+
+정확도: Text RAG (45%) < CLIP/Hybrid (84%)
+속도: Text RAG (500ms) >> CLIP (45ms) > Hybrid (80ms)
+복잡도: CLIP (1) < Hybrid (2.5) < Text RAG (2)
 
 ---
 
