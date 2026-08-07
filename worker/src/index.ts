@@ -1,11 +1,12 @@
 import { handleListPosts, handleGetPostBySlug } from './routes/posts';
 import { handleRss } from './routes/rss';
 import { handlePostPage } from './routes/post-page';
-import { handlePublishPost } from './routes/admin';
+import { handlePublishPost, isAuthorized } from './routes/admin';
 
 export interface Env {
   DB: D1Database;
   SITE_URL: string;
+  ADMIN_TOKEN?: string;
 }
 
 export default {
@@ -32,7 +33,10 @@ export default {
       }
 
       if (pathname === '/admin/publish' && request.method === 'POST') {
-        const body = await request.json();
+        if (!isAuthorized(request, env.ADMIN_TOKEN)) {
+          return Response.json({ error: 'unauthorized' }, { status: 401 });
+        }
+        const body = await request.json<Record<string, unknown>>();
         return await handlePublishPost(env.DB, body);
       }
 

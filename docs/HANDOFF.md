@@ -176,6 +176,32 @@ CREATE TABLE commit_log (
 
 발행 파이프라인 공통 흐름: **소재 발생 → Anthropic API 초안 생성 → `draft` → 리뷰 대시보드 → 승인 시 `published`(즉시 반영) / 반려 시 `rejected`**. 자동 즉시발행 없음 — 모든 소스(수동/커밋/논문) 공통 규칙.
 
+### 3.3 임시 발행 경로 `POST /admin/publish` (대시보드 구현 전까지)
+
+리뷰 대시보드(§5의 6단계)가 아직 없어서, 사람이 손으로 쓴 글을 올리는 임시 통로만
+열어둔 상태다. **대시보드가 생기면 `worker/src/routes/admin.ts`를 파일째 지운다.**
+
+- 인증: `Authorization: Bearer <ADMIN_TOKEN>`. 토큰은 `wrangler secret put ADMIN_TOKEN`으로
+  넣는다. 시크릿이 없으면 **열리는 게 아니라 잠긴다**(전부 401) — 설정 누락이 곧
+  공개가 되면 안 되기 때문.
+- 동작: `slug`가 있으면 UPDATE, 없으면 INSERT. 둘 다 `status='published'`로 만든다.
+  즉 **이 경로는 리뷰 게이트를 우회한다** — 사람이 직접 쓴 글에만 쓰고,
+  cron/webhook 등 자동 생성 경로를 여기에 연결하지 말 것.
+- 중요: `posts-source/*.md`의 `status:`를 고쳐도 사이트는 바뀌지 않는다. Worker는
+  D1에서 읽는다. 반드시 이 엔드포인트(또는 `wrangler d1 execute`)로 D1을 갱신해야 한다.
+
+```bash
+# frontmatter를 파싱해 JSON으로 만든 뒤
+curl -X POST https://tech-blog-worker.cheonhyeonjun583.workers.dev/admin/publish \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @post.json
+```
+
+이미지는 `pages/posts-assets/<slug>/` 평평한 구조에 두고 본문에서
+`/posts-assets/<slug>/x.png`로 참조한다. `wrangler deploy`가 `pages/`를 정적
+자산으로 함께 올린다.
+
 ---
 
 ## 4. 콘텐츠 저작 — 클로드 프롬프트

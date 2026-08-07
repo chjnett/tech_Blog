@@ -1,4 +1,24 @@
-import type { PostRow } from '../types';
+// 리뷰 대시보드(HANDOFF.md §5-6)가 구현되기 전까지 쓰는 임시 발행 경로.
+// 대시보드가 생기면 이 파일째 제거한다.
+//
+// 타이밍 공격에 안전한 비교. 길이가 다르면 즉시 false지만, 토큰 길이 자체는
+// 비밀이 아니므로 문제되지 않는다.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+export function isAuthorized(request: Request, expected: string | undefined): boolean {
+  // 시크릿이 없으면 열어두지 않고 잠근다 — 설정 누락이 곧 공개가 되면 안 된다.
+  if (!expected) return false;
+  const header = request.headers.get('Authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  return token.length > 0 && safeEqual(token, expected);
+}
 
 export async function handlePublishPost(
   db: D1Database,
