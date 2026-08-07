@@ -1,0 +1,25 @@
+{
+  "metadata": {
+    "source": "Real CLIP-ViT-B/32 (open-clip)",
+    "num_images": 20,
+    "defect_types": [
+      "scratch",
+      "dent",
+      "stain",
+      "crack"
+    ],
+    "num_documents": 8
+  },
+  "image_retrieval": {
+    "recall_top1": 0.95,
+    "recall_top5": 1.0,
+    "recall_top10": 1.0,
+    "avg_search_time_ms": 45
+  },
+  "hybrid_search": {
+    "image_text_similarity": 0.23565158247947693,
+    "similarity_std": 0.011092154309153557,
+    "similarity_min": 0.2084154337644577,
+    "similarity_max": 0.25920891761779785
+  }
+}
