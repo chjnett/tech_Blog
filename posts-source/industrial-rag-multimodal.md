@@ -103,12 +103,11 @@ L-PBF(Laser Powder Bed Fusion) 논문에서 본 접근법:
 
 **아키텍처**:
 
-![Architecture](/posts-assets/industrial-rag-multimodal/05_architecture_diagram.png)
+![실제로 돌린 파이프라인. 합성 이미지 20장과 문서 쿼리 8개를 같은 CLIP으로 인코딩해 코사인 유사도를 계산했다.](/posts-assets/industrial-rag-multimodal/04_pipeline.png)
 
-파이프라인 흐름:
-1. 결함 이미지 → CLIP Vision Encoder → 임베딩 벡터
-2. 기술 매뉴얼 PDF (문장 단위) → CLIP Text Encoder → 임베딩 벡터
-3. Cosine Similarity 계산 → 상위 K개 관련 문서 추천
+원래 계획은 기술 매뉴얼 PDF를 문장 단위로 쪼개 넣는 것이었지만, 이번엔 그 전에
+**"CLIP이 산업 문서 문장과 결함 이미지를 잇기는 하는가"**부터 확인하기로 했다.
+그래서 문서 쪽은 대표 문장 8개로 줄였다. 이게 안 되면 PDF 파싱은 의미가 없기 때문이다.
 
 ### 3-3. 실제 CLIP 모델로 검증
 

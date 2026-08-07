@@ -109,4 +109,54 @@ fig.savefig(OUT / "03_query_ranking_spread.png", dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("✓ 03_query_ranking_spread.png")
 
+# ── Figure 4: 실제로 돌린 파이프라인 ──────────────────────────────────
+meta = R["metadata"]
+fig, ax = plt.subplots(figsize=(8, 4.6))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 6)
+ax.axis("off")
+
+
+def box(x, y, w, h, lines, fill="white", text_color=INK):
+    ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fill,
+                               edgecolor=INK, linewidth=1.5, zorder=2))
+    ax.text(x + w / 2, y + h / 2, "\n".join(lines), ha="center", va="center",
+            fontsize=9, color=text_color, zorder=3, linespacing=1.5)
+
+
+def arrow(x1, y1, x2, y2):
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                arrowprops=dict(arrowstyle="-|>", color=INK, linewidth=1.3,
+                                shrinkA=0, shrinkB=0))
+
+
+box(0.2, 4.4, 4.3, 1.1, [f"{meta['num_images']} synthetic defect images",
+                         f"({', '.join(meta['defect_types'])})"])
+box(5.5, 4.4, 4.3, 1.1, [f"{len(meta['doc_queries'])} document queries",
+                         '"surface defect detection", ...'])
+box(0.2, 2.9, 4.3, 0.9, ["CLIP ViT-B/32 image encoder", "→ 20 x 512, L2-normalized"])
+box(5.5, 2.9, 4.3, 0.9, ["CLIP ViT-B/32 text encoder", "→ 8 x 512, L2-normalized"])
+box(2.9, 1.6, 4.2, 0.8, ["cosine similarity"])
+
+arrow(2.35, 4.4, 2.35, 3.8)
+arrow(7.65, 4.4, 7.65, 3.8)
+arrow(2.35, 2.9, 4.2, 2.4)
+arrow(7.65, 2.9, 5.8, 2.4)
+
+ir_r1 = ir["recall_top1"]
+box(0.2, 0.15, 4.3, 1.0,
+    [f"image ↔ image:  Recall@1 {ir_r1:.0%}", "works"], fill=INK, text_color="white")
+box(5.5, 0.15, 4.3, 1.0,
+    [f"image ↔ text:  spread {hs['per_query_spread']:.3f}", "does not rank"],
+    fill=INK, text_color="white")
+arrow(4.2, 1.6, 2.35, 1.15)
+arrow(5.8, 1.6, 7.65, 1.15)
+
+ax.set_title("What was actually run  (seed=42, CPU, reproducible)",
+             fontsize=11, fontweight="bold", color=INK, pad=10)
+fig.tight_layout()
+fig.savefig(OUT / "04_pipeline.png", dpi=150, bbox_inches="tight")
+plt.close(fig)
+print("✓ 04_pipeline.png")
+
 print("\nall figures regenerated from results/real_results.json")

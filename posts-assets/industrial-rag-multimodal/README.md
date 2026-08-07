@@ -1,111 +1,71 @@
-# Industrial Multimodal RAG: Image + Document Search
+# Industrial Multimodal RAG — CLIP으로 결함 이미지와 기술 문서를 잇는 실험
 
-산업 현장의 이미지형 데이터(결함 이미지)와 문서형 데이터(기술 매뉴얼)를 CLIP 기반 검색으로 통합하는 RAG 프로토타입.
+블로그 글 [산업 현장 데이터는 텍스트만이 아니다](https://chjnett.dev/posts/industrial-rag-multimodal)의
+측정 코드. 글에 나오는 모든 숫자는 이 디렉토리의 스크립트 한 번의 실행에서 나온다.
 
-## Overview
+## 결론부터
 
-**문제**: 산업 현장은 텍스트만이 아닌 이미지 + 문서가 섞여 있음
-- 설비 결함은 이미지로 발생
-- 해결책은 기술 매뉴얼(PDF)에 있음
-- 기존 텍스트 전용 RAG는 이를 놓친다
+| 과제 | 지표 | 결과 | 판정 |
+|---|---|---|---|
+| 이미지 ↔ 이미지 | Recall@1 / @5 | 95% / 100% | 됨 (단, 쉬운 데이터) |
+| 이미지 ↔ 문서 | 평균 유사도 | 0.236 | 낮음 |
+| 이미지 ↔ 문서 | 표준편차 | 0.011 | **안 됨** |
+| 이미지 ↔ 문서 | 쿼리 간 최대차 | 0.032 | **안 됨** |
 
-**솔루션**: 멀티모달 검색
-- 이미지: CLIP으로 결함 이미지 검색 (Zero-shot anomaly detection)
-- 문서: PDF에서 관련 텍스트 + 이미지 검색
-- 하이브리드: 이미지 검색 결과 → 관련 매뉴얼 페이지 자동 연결
+핵심은 마지막 두 줄이다. 일반 CLIP은 이미지와 산업 문서를 같은 임베딩 공간에
+놓기는 하지만 **그 안에서 순위를 매기지 못한다**. 8개 문서 쿼리의 평균 유사도가
+0.216~0.248 사이에 전부 몰려 있어서, 문서 추천을 붙이면 사실상 무작위가 된다.
 
-## Architecture
+## 이 실험이 증명하지 못하는 것
 
-```
-┌─────────────────────────────────────┐
-│   Industrial Defect Image           │
-│   (MVTec AD - leather, wood, etc)   │
-└────────────┬────────────────────────┘
-             │
-             ↓
-    ┌───────────────────┐
-    │  CLIP Embedding   │
-    │  (Image → Vector) │
-    └────────┬──────────┘
-             │
-             ↓
-    ┌─────────────────────────────────┐
-    │  Similarity Search              │
-    │  (Find Similar Defects)         │
-    └────────┬────────────────────────┘
-             │
-             ↓
-    ┌─────────────────────────────────┐
-    │  Retrieve Related Documents     │
-    │  (Technical Manuals - ArXiv)    │
-    └─────────────────────────────────┘
+- **이미지가 합성이다.** MVTec AD를 받지 못해 4가지 결함(scratch, dent, stain,
+  crack)을 PIL로 그린 20장으로 대체했다. 실제 제조 이미지의 조명·질감·노이즈가 없다.
+- **그래서 Recall@5 100%는 쉬운 과제다.** 4개 클래스가 시각적으로 확연히 다르다.
+  실제 MVTec에서 재현될 거라고 기대하면 안 된다.
+- **N=20은 통계가 아니다.** 이미지 한 장이 Recall을 5%씩 움직인다.
+
+반대로 **낮게 나온 쪽(0.236, std 0.011)은 신뢰할 만하다.** 조건을 유리하게 줬는데도
+이미지-텍스트 정렬이 안 됐다는 뜻이라, 실제 데이터에서 더 좋아질 이유가 없다.
+
+## 실행
+
+```bash
+pip install -r requirements.txt
+
+python run_real_clip.py    # 측정 → results/real_results.json
+python make_figures.py     # json → results/figures/*.png
 ```
 
-## Dataset
+CPU에서 몇 초면 끝난다(모델 다운로드 제외). GPU 불필요. `seed=42`로 고정돼 있어
+그대로 재현된다.
 
-### Images: MVTec AD (Anomaly Detection)
-- **Categories**: leather, wood, carpet (3 선택)
-- **Size**: ~400 normal + 50-100 defective per category
-- **Source**: https://www.mvtec.com/company/research/datasets/mvtec-ad
-
-### Documents: ArXiv Technical Papers
-- `Surface Defect Detection Using CNNs` (2011.xxxxx)
-- `MVTec AD: A Comprehensive Real-World Dataset` (1904.04998)
-- `Industrial Anomaly Detection with Domain-Specific Representations` (2401.xxxxx)
-- PDFs로 다운로드 후 검색 대상
-
-## Files
+## 파일
 
 | File | Purpose |
 |------|---------|
-| `1_setup.py` | 환경 설정, 데이터 다운로드, 의존성 설치 |
-| `2_image_search.py` | CLIP으로 이미지 임베딩 + 유사도 검색 |
-| `3_document_search.py` | ArXiv PDF 로드 + 텍스트 추출 + 검색 |
-| `4_evaluate.py` | Recall@5, Recall@10, 정확도 측정 |
-| `5_visualize.py` | 검색 결과 시각화 + 그래프 생성 |
+| `run_real_clip.py` | 합성 이미지 생성 → CLIP 인코딩 → Recall/유사도 측정. **모든 숫자의 출처** |
+| `make_figures.py` | `real_results.json`만 읽어서 figure 생성. 하드코딩 수치 없음 |
+| `results/real_results.json` | 측정 결과 + raw 유사도 160개 |
+| `results/figures/` | 블로그에 실린 그림 |
 
-## Usage (Google Colab)
+`make_figures.py`가 JSON만 읽도록 만든 건 의도적이다. 초기 버전에서는 그림이
+하드코딩된 샘플 값으로 그려져 **본문 숫자와 그림이 어긋난 채로 배포된 적이 있다.**
+지금 구조에서는 그게 불가능하다.
 
-```python
-# 1. Setup
-!pip install -r requirements.txt
-!python 1_setup.py
+## 다음
 
-# 2. Image Search
-!python 2_image_search.py
-
-# 3. Document Search
-!python 3_document_search.py
-
-# 4. Evaluate
-!python 4_evaluate.py
-
-# 5. Visualize
-!python 5_visualize.py
-```
-
-## Results
-
-- **Image Search (CLIP)**: Recall@5 = 85%+
-- **Document-Image Linking**: 74% 관련성 (정성 평가)
-- **Computation**: RTX 3090 기준 5분 (1000 이미지 처리)
-
-## Key Insights
-
-1. **Zero-shot 학습**: 라벨 없이도 CLIP으로 결함 분류 가능
-2. **멀티모달 연결**: 이미지 검색 → 자동으로 관련 문서 추천
-3. **비용 효율**: 대규모 모델 학습 필요 없음 (CLIP 사용)
-4. **실무 한계**: 복잡한 표/차트는 여전히 정확도 낮음
-
-## Next Steps
-
-- [ ] LoRA Fine-tuning (도메인 특화)
-- [ ] 그래프 DB로 문서-이미지 관계 저장
-- [ ] Self-RAG: 검색 필요 여부 동적 판단
-- [ ] 멀티 에이전트: 검색 후 분석 자동화
+1. **실제 MVTec AD로 재측정** — 지금 숫자는 합성 이미지 기준이라 그대로 인용 불가
+2. **도메인 특화 fine-tuning** — 목표는 유사도 절대값이 아니라 **표준편차를 키우는 것**.
+   문서 간 순위가 갈려야 검색이 성립한다
+3. OCR / Graph DB는 하지 않는다 — 하위 레이어가 깨진 상태에서 위에 구조를 얹어봐야
+   의미가 없다
 
 ## References
 
-- **CLIP**: Learning Transferable Models for Computervision (Radford et al., 2021)
-- **MVTec AD**: MVTec AD: A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection (Bergman et al., 2019)
-- **RAG**: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., 2020)
+- **CLIP**: *Learning Transferable Visual Models From Natural Language Supervision*
+  (Radford et al., 2021) — [arXiv:2103.00020](https://arxiv.org/abs/2103.00020)
+- **MVTec AD**: *MVTec AD — A Comprehensive Real-World Dataset for Unsupervised
+  Anomaly Detection* (Bergmann et al., CVPR 2019) —
+  [dataset](https://www.mvtec.com/company/research/datasets/mvtec-ad)
+- **RAG**: *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*
+  (Lewis et al., 2020) — [arXiv:2005.11401](https://arxiv.org/abs/2005.11401)
