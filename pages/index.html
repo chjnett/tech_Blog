@@ -232,10 +232,10 @@
     margin:0 auto;
     padding:0 24px 96px;
   }
-  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) — 같은 폭 */
+  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) */
   .oss-panel{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:0.85fr 1.15fr;
     align-items:stretch;             /* 두 열 같은 높이 */
     border:1px solid var(--line);
     border-radius:16px;
@@ -278,21 +278,17 @@
     color:var(--ink-soft);
     margin-bottom:14px;
   }
-  /* ── PR 브랜치 (카드 = 기여 카드와 같은 칸, 내부에 브랜치 래인) ── */
-  .pr-list{
-    display:block;
-  }
+  /* ── PR 브랜치 (카드형 — 기여 카드와 같은 칸 느낌) ── */
+  .pr-list{display:block;}
   .pr-branch{
     position:relative;
-    display:flex;
-    flex-direction:column;
+    display:block;
     text-decoration:none;
     border:1px solid var(--line);
     border-radius:16px;
     background:var(--bg);
-    padding:16px 18px 14px 48px;   /* 왼쪽 여백 = 브랜치 래인 */
+    padding:16px 18px 14px 20px;
     margin-bottom:12px;
-    min-height:132px;              /* 우측 기여 카드와 같은 높이 */
     transition:border-color .15s ease, box-shadow .2s ease, transform .2s ease;
   }
   .pr-branch:hover{
@@ -301,42 +297,34 @@
     transform:translateY(-2px);
   }
   .pr-branch:hover .pr-branch-title{color:var(--ink);}
-  /* 카드 내부 세로 트렁크 (래인) */
-  .pr-branch::before{
-    content:'';
-    position:absolute;
-    left:20px; top:0; bottom:0;
-    width:2px;
-    background:var(--line);
+  /* 카드 안 브랜치 노드: 점 + 가지 선 */
+  .pr-node{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
   }
-  /* 트렁크 접점 커밋 노드 점 */
-  .pr-branch::after{
+  .pr-node::before{   /* 커밋 노드 점 */
     content:'';
-    position:absolute;
-    left:16px; top:19px;
-    width:10px; height:10px;
+    width:9px; height:9px;
     border-radius:50%;
     background:var(--ink);
     border:2px solid var(--line);
     box-sizing:border-box;
   }
-  .pr-branch.merged::after{background:#fff; border-color:var(--ink-soft);}
-  .pr-branch.closed::after{background:var(--bg-soft); border-color:var(--ink-soft);}
-  .pr-branch.ci-failure::after{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
-  /* 트렁크 → 내용물 가지 선 */
-  .pr-branch-row::before{
+  .pr-node::after{    /* 가지 선 */
     content:'';
-    position:absolute;
-    left:21px; top:24px;
-    width:27px; height:0;
+    width:14px; height:0;
     border-top:1.5px solid var(--line);
   }
+  .pr-branch.merged .pr-node::before{background:#fff; border-color:var(--ink-soft);}
+  .pr-branch.closed .pr-node::before{background:var(--bg-soft); border-color:var(--ink-soft);}
+  .pr-branch.ci-failure .pr-node::before{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
   .pr-branch-row{
     display:flex;
     align-items:center;
     gap:10px;
     flex-wrap:wrap;
-    position:relative;
   }
   .pr-branch-repo{
     font-family:var(--mono);
@@ -361,8 +349,7 @@
     display:flex;
     align-items:center;
     gap:10px;
-    margin-top:auto;               /* 카드 하단에 붙이기 (기여 카드와 같은 느낌) */
-    padding-top:10px;
+    margin-top:3px;
     flex-wrap:wrap;
   }
   .pr-branch-read{
@@ -417,7 +404,6 @@
     display:flex;
     flex-direction:column;
     gap:10px;
-    min-height:132px;               /* 좌측 PR 카드와 같은 높이 */
     transition:box-shadow .2s ease, transform .2s ease, border-color .15s ease;
   }
   .contrib-card:hover{
@@ -736,6 +722,7 @@
             const extAttr = external ? ' target="_blank" rel="noopener"' : '';
             return `<a class="${branchClass(pr).trim()}" href="${href}"${extAttr}>
               <div class="pr-branch-row">
+                <span class="pr-node" aria-hidden="true"></span>
                 <span class="pr-branch-repo">${repo}</span>
                 <span class="pr-branch-num">#${pr.pr_number}</span>
                 ${stateBadge(pr)}
