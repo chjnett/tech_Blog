@@ -232,10 +232,10 @@
     margin:0 auto;
     padding:0 24px 96px;
   }
-  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) */
+  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) — 같은 폭 */
   .oss-panel{
     display:grid;
-    grid-template-columns:0.85fr 1.15fr;
+    grid-template-columns:1fr 1fr;
     align-items:stretch;             /* 두 열 같은 높이 */
     border:1px solid var(--line);
     border-radius:16px;
@@ -284,13 +284,15 @@
   }
   .pr-branch{
     position:relative;
-    display:block;
+    display:flex;
+    flex-direction:column;
     text-decoration:none;
     border:1px solid var(--line);
     border-radius:16px;
     background:var(--bg);
     padding:16px 18px 14px 48px;   /* 왼쪽 여백 = 브랜치 래인 */
     margin-bottom:12px;
+    min-height:132px;              /* 우측 기여 카드와 같은 높이 */
     transition:border-color .15s ease, box-shadow .2s ease, transform .2s ease;
   }
   .pr-branch:hover{
@@ -359,7 +361,8 @@
     display:flex;
     align-items:center;
     gap:10px;
-    margin-top:3px;
+    margin-top:auto;               /* 카드 하단에 붙이기 (기여 카드와 같은 느낌) */
+    padding-top:10px;
     flex-wrap:wrap;
   }
   .pr-branch-read{
@@ -414,6 +417,7 @@
     display:flex;
     flex-direction:column;
     gap:10px;
+    min-height:132px;               /* 좌측 PR 카드와 같은 높이 */
     transition:box-shadow .2s ease, transform .2s ease, border-color .15s ease;
   }
   .contrib-card:hover{
