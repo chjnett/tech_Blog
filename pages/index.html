@@ -330,11 +330,75 @@
     padding:24px 4px;
   }
 
+  /* ---------- CONTRIB (기여한 글) ---------- */
+  .contrib-section{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:0 24px 96px;
+  }
+  .contrib-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:22px;
+  }
+  .contrib-card{
+    text-decoration:none;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:20px 20px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:box-shadow .2s ease, transform .2s ease, border-color .15s ease;
+  }
+  .contrib-card:hover{
+    border-color:var(--ink-soft);
+    box-shadow:0 8px 24px rgba(16,19,26,0.07);
+    transform:translateY(-2px);
+  }
+  .contrib-meta{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .contrib-repo{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--ink-soft);
+  }
+  .contrib-tag{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:99px;
+    padding:1px 8px;
+  }
+  .contrib-title{
+    font-size:15px;
+    font-weight:600;
+    line-height:1.4;
+    color:var(--ink);
+    letter-spacing:-0.005em;
+  }
+  .contrib-excerpt{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:760px){
     .hero{grid-template-columns:1fr; padding-top:40px;}
     .hero-minimal{padding:48px 24px 32px;}
     .posts-grid{grid-template-columns:1fr;}
+    .contrib-grid{grid-template-columns:1fr;}
     .filter-pills{gap:5px;}
   }
 
@@ -370,6 +434,15 @@
   <div class="posts-grid" id="postsGrid">
     <div class="empty-state" id="emptyState">해당 카테고리의 글이 없습니다.</div>
   </div>
+</section>
+
+<!-- 오픈소스 기여한 글 -->
+<section class="contrib-section" id="contribSection" style="display:none" aria-label="오픈소스 기여한 글">
+  <div class="pr-head">
+    <span class="pr-title">기여한 글</span>
+    <span class="pr-summary" id="contribCount"></span>
+  </div>
+  <div class="contrib-grid" id="contribGrid"></div>
 </section>
 
 <!-- GitHub PR 상태 -->
@@ -480,6 +553,8 @@
     grid.querySelectorAll('.post-card').forEach((el) => el.remove());
 
     posts.forEach((post) => {
+      // 오픈소스 기여글(oss-*)은 아래 '기여한 글' 섹션에서 별도 표시.
+      if (post.slug.startsWith('oss-')) return;
       const tagsJson = JSON.stringify(post.tags || []);
       const tagsHtml = (post.tags || []).map((tag) =>
         `<span class="post-tag" data-tag="${escapeHtml(tag)}">#${escapeHtml(tag)}</span>`
@@ -500,14 +575,40 @@
     });
   }
 
+  /* ── 기여한 글(oss-*) 카드 빌드 ── */
+  function buildContrib(posts) {
+    const section = document.getElementById('contribSection');
+    const grid = document.getElementById('contribGrid');
+    const contrib = posts.filter((p) => p.slug.startsWith('oss-'));
+    if (!contrib.length) return;
+    section.style.display = '';
+    document.getElementById('contribCount').textContent = `${contrib.length}건`;
+    grid.innerHTML = contrib
+      .map((p) => {
+        const tags = (p.tags || []).slice(0, 3)
+          .map((t) => `<span class="contrib-tag">#${escapeHtml(t)}</span>`).join('');
+        return `<a class="contrib-card" href="/oss/${encodeURIComponent(p.slug)}">
+          <div class="contrib-meta">
+            <span class="contrib-repo">OSS 기여</span>
+            ${tags}
+          </div>
+          <div class="contrib-title">${escapeHtml(p.title)}</div>
+          <p class="contrib-excerpt">${escapeHtml(p.excerpt || '')}</p>
+        </a>`;
+      })
+      .join('');
+  }
+
   /* ── 데이터 로드 ── */
   fetch('/api/posts')
     .then((res) => res.json())
     .then((posts) => {
-      allPosts = posts;
-      buildCards(posts);
-      buildFilter(posts);
-      renderCards();   // 초기 카운트 표시
+      // 기여글(oss-*)은 별도 섹션으로, 일반 글 목록/필터에서는 제외
+      buildContrib(posts);                              // 기여한 글 섹션
+      allPosts = posts.filter((p) => !p.slug.startsWith('oss-'));
+      buildCards(allPosts);
+      buildFilter(allPosts);
+      renderCards();         // 초기 카운트 표시
     })
     .catch((err) => console.error('failed to load posts', err));
 
