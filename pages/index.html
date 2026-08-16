@@ -232,25 +232,39 @@
     margin:0 auto;
     padding:0 24px 96px;
   }
-  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) — 같은 폭 */
+  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) */
   .oss-panel{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    align-items:stretch;             /* 두 열 같은 높이 */
     border:1px solid var(--line);
     border-radius:16px;
     overflow:hidden;
     background:var(--bg);
   }
-  .oss-panel .pr-section{
-    min-width:0;
-    padding:26px 24px;
-    border-right:1px solid var(--line);
+  /* 헤더 행: 두 열 제목 */
+  .oss-heads{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-bottom:1px solid var(--line);
   }
-  .oss-panel .contrib-section{
+  .oss-head{
+    padding:22px 24px 14px;
     min-width:0;
-    padding:26px 24px;
   }
+  .oss-head + .oss-head{ border-left:1px solid var(--line); }
+  .oss-head .pr-updated{ margin-bottom:0; }
+  /* 카드 쌍 행: [PR 카드 | 기여 카드] — 같은 행 높이로 하단 정렬 */
+  .oss-rows{
+    padding:18px 24px 24px;
+  }
+  .oss-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:14px;
+    align-items:stretch;
+  }
+  .oss-row:last-child{ margin-bottom:0; }
+  .oss-row .pr-branch{ height:auto; margin-bottom:0; }
+  .oss-row .contrib-card{ height:auto; }
   .pr-head{
     display:flex;
     align-items:baseline;
@@ -290,7 +304,6 @@
     background:var(--bg);
     padding:16px 18px 14px 20px;
     margin-bottom:12px;
-    height:160px;                  /* 우측 기여 카드와 완전히 같은 높이 */
     overflow:hidden;
     transition:border-color .15s ease, box-shadow .2s ease, transform .2s ease;
   }
@@ -420,7 +433,6 @@
     display:flex;
     flex-direction:column;
     gap:10px;
-    height:160px;                  /* 좌측 PR 카드와 완전히 같은 높이 */
     overflow:hidden;
     transition:box-shadow .2s ease, transform .2s ease, border-color .15s ease;
   }
@@ -472,11 +484,12 @@
     .hero-minimal{padding:48px 24px 32px;}
     .posts-grid{grid-template-columns:1fr;}
     .contrib-grid{grid-template-columns:1fr;}
-    .oss-panel{grid-template-columns:1fr;}
-    .oss-panel .pr-section{
-      border-right:none;
-      border-bottom:1px solid var(--line);
+    .oss-heads{grid-template-columns:1fr;}
+    .oss-head + .oss-head{
+      border-left:none;
+      border-top:1px solid var(--line);
     }
+    .oss-row{grid-template-columns:1fr;}
     .filter-pills{gap:5px;}
   }
 
@@ -514,27 +527,21 @@
   </div>
 </section>
 
-<!-- 오픈소스: 브랜치(좌) + 기여한 글(우) — 하나의 패널 -->
+<!-- 오픈소스: 브랜치(좌) + 기여한 글(우) — 하나의 패널, 카드 쌍 행 -->
 <div class="oss-grid">
-  <div class="oss-panel">
-    <!-- PR 브랜치 그래프 (왼쪽) -->
-    <section class="pr-section" id="prSection" style="display:none" aria-label="오픈소스 기여 PR 상태">
-      <div class="pr-head">
+  <div class="oss-panel" id="ossPanel" style="display:none">
+    <div class="oss-heads">
+      <div class="oss-head">
         <span class="pr-title">Open Source PRs</span>
         <span class="pr-summary" id="prSummary"></span>
+        <p class="pr-updated" id="prUpdated"></p>
       </div>
-      <p class="pr-updated" id="prUpdated"></p>
-      <div class="pr-list" id="prList"></div>
-    </section>
-
-    <!-- 기여한 글 (오른쪽) -->
-    <section class="contrib-section" id="contribSection" style="display:none" aria-label="오픈소스 기여한 글">
-      <div class="pr-head">
+      <div class="oss-head">
         <span class="pr-title">기여한 글</span>
         <span class="pr-summary" id="contribCount"></span>
       </div>
-      <div class="contrib-grid" id="contribGrid"></div>
-    </section>
+    </div>
+    <div class="oss-rows" id="ossRows"></div>
   </div>
 </div>
 
@@ -658,28 +665,45 @@
     });
   }
 
-  /* ── 기여한 글(oss-*) 카드 빌드 ── */
-  function buildContrib(posts) {
-    const section = document.getElementById('contribSection');
-    const grid = document.getElementById('contribGrid');
-    const contrib = posts.filter((p) => p.slug.startsWith('oss-'));
-    if (!contrib.length) return;
-    section.style.display = '';
-    document.getElementById('contribCount').textContent = `${contrib.length}건`;
-    grid.innerHTML = contrib
-      .map((p) => {
-        const tags = (p.tags || []).slice(0, 3)
-          .map((t) => `<span class="contrib-tag">#${escapeHtml(t)}</span>`).join('');
-        return `<a class="contrib-card" href="/oss/${encodeURIComponent(p.slug)}">
-          <div class="contrib-meta">
-            <span class="contrib-repo">OSS 기여</span>
-            ${tags}
-          </div>
-          <div class="contrib-title">${escapeHtml(p.title)}</div>
-          <p class="contrib-excerpt">${escapeHtml(p.excerpt || '')}</p>
-        </a>`;
+  /* ── 기여한 글(oss-*) 카드 HTML ── */
+  function contribCardHtml(p) {
+    const tags = (p.tags || []).slice(0, 3)
+      .map((t) => `<span class="contrib-tag">#${escapeHtml(t)}</span>`).join('');
+    return `<a class="contrib-card" href="/oss/${encodeURIComponent(p.slug)}">
+      <div class="contrib-meta">
+        <span class="contrib-repo">OSS 기여</span>
+        ${tags}
+      </div>
+      <div class="contrib-title">${escapeHtml(p.title)}</div>
+      <p class="contrib-excerpt">${escapeHtml(p.excerpt || '')}</p>
+    </a>`;
+  }
+
+  /* ── 오픈소스 패널: PR 카드 + 기여 카드를 같은 행으로 짝지어 렌더 ── */
+  let prItems = null;
+  let contribItems = [];
+
+  function renderOssRows() {
+    if (!prItems || contribItems.length === 0) return;
+    // 각 PR을 자기 기여글(post_slug)과 짝짓는다 (없으면 인덱스 폴백)
+    const bySlug = {};
+    contribItems.forEach((p) => { bySlug[p.slug] = p; });
+    const rows = prItems
+      .map((pr, i) => {
+        const post = bySlug[pr.post_slug] || contribItems[i] || null;
+        const contrib = post ? contribCardHtml(post) : '';
+        return `<div class="oss-row">${prCardHtml(pr)}${contrib}</div>`;
       })
       .join('');
+    document.getElementById('ossRows').innerHTML = rows;
+    document.getElementById('ossPanel').style.display = '';
+  }
+
+  function buildContrib(posts) {
+    contribItems = posts.filter((p) => p.slug.startsWith('oss-'));
+    if (!contribItems.length) return;
+    document.getElementById('contribCount').textContent = `${contribItems.length}건`;
+    renderOssRows();
   }
 
   /* ── 데이터 로드 ── */
@@ -695,77 +719,70 @@
     })
     .catch((err) => console.error('failed to load posts', err));
 
+  /* ── 상태 배지/브랜치 클래스/PR 카드 HTML ── */
+  function stateBadge(pr) {
+    if (pr.merged) return '<span class="pr-state merged">머지</span>';
+    if (pr.state === 'open') {
+      const ci = pr.ci_combined;
+      if (ci === 'failure') {
+        return '<span class="pr-state ci-failure">CI 실패</span>';
+      }
+      if (ci === 'pending') {
+        return '<span class="pr-state open">진행</span>';
+      }
+      return '<span class="pr-state open">open</span>';
+    }
+    return '<span class="pr-state closed">closed</span>';
+  }
+
+  function branchClass(pr) {
+    if (pr.merged) return ' pr-branch merged';
+    if (pr.state === 'open' && pr.ci_combined === 'failure') return ' pr-branch ci-failure';
+    return pr.state === 'open' ? ' pr-branch' : ' pr-branch closed';
+  }
+
+  function prCardHtml(pr) {
+    // 연관 기여 글이 있으면 /oss/:slug로, 없으면 GitHub PR로 폴백.
+    const href = pr.post_slug ? `/oss/${encodeURIComponent(pr.post_slug)}` : pr.url;
+    const external = !pr.post_slug;
+    const title = escapeHtml(pr.title || `#${pr.pr_number}`);
+    const repo = escapeHtml(pr.repo || '');
+    const extAttr = external ? ' target="_blank" rel="noopener"' : '';
+    // 카드 = div, 노드(●──)는 GitHub PR 링크, 본문은 기여글(or GitHub) 링크
+    return `<div class="${branchClass(pr).trim()}">
+      <a class="pr-node" href="${pr.url}" target="_blank" rel="noopener"
+         aria-label="GitHub에서 PR 열기" title="GitHub에서 열기"></a>
+      <a class="pr-branch-main" href="${href}"${extAttr}>
+        <div class="pr-branch-row">
+          <span class="pr-branch-repo">${repo}</span>
+          <span class="pr-branch-num">#${pr.pr_number}</span>
+          ${stateBadge(pr)}
+        </div>
+        <div class="pr-branch-title">${title}</div>
+        <div class="pr-branch-foot">
+          <span class="pr-branch-read">${pr.post_slug ? '이 기여 · 글 보기' : 'GitHub에서 보기'}</span>
+        </div>
+      </a>
+    </div>`;
+  }
+
   /* ── PR 상태 로드 ── */
   function loadPrs() {
     fetch('/api/prs')
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
       .then((data) => {
-        const section = document.getElementById('prSection');
         if (!data.items || data.items.length === 0) {
-          section.style.display = '';
           document.getElementById('prSummary').textContent = '기여한 PR 없음';
           return;
         }
-
-        // 상태 배지 렌더 (모노크롬: 텍스트·테두리·흑백 반전만)
-        function stateBadge(pr) {
-          if (pr.merged) return '<span class="pr-state merged">머지</span>';
-          if (pr.state === 'open') {
-            const ci = pr.ci_combined;
-            if (ci === 'failure') {
-              return '<span class="pr-state ci-failure">CI 실패</span>';
-            }
-            if (ci === 'pending') {
-              return '<span class="pr-state open">진행</span>';
-            }
-            return '<span class="pr-state open">open</span>';
-          }
-          return '<span class="pr-state closed">closed</span>';
-        }
-
-        // 그래프 노드 클래스: 상태에 따라 원의 채움/테두리 결정
-        function branchClass(pr) {
-          if (pr.merged) return ' pr-branch merged';
-          if (pr.state === 'open' && pr.ci_combined === 'failure') return ' pr-branch ci-failure';
-          return pr.state === 'open' ? ' pr-branch' : ' pr-branch closed';
-        }
-
-        const items = data.items
-          .map((pr) => {
-            // 연관 기여 글이 있으면 /oss/:slug로, 없으면 GitHub PR로 폴백.
-            const href = pr.post_slug ? `/oss/${encodeURIComponent(pr.post_slug)}` : pr.url;
-            const external = !pr.post_slug;
-            const title = escapeHtml(pr.title || `#${pr.pr_number}`);
-            const repo = escapeHtml(pr.repo || '');
-            const tag = escapeHtml((pr.tags && pr.tags[0]) || (pr.post_slug ? '기여' : ''));
-            const extAttr = external ? ' target="_blank" rel="noopener"' : '';
-            // 카드 = div, 노드(●──)는 GitHub PR 링크, 본문은 기여글(or GitHub) 링크
-            return `<div class="${branchClass(pr).trim()}">
-              <a class="pr-node" href="${pr.url}" target="_blank" rel="noopener"
-                 aria-label="GitHub에서 PR 열기" title="GitHub에서 열기"></a>
-              <a class="pr-branch-main" href="${href}"${extAttr}>
-                <div class="pr-branch-row">
-                  <span class="pr-branch-repo">${repo}</span>
-                  <span class="pr-branch-num">#${pr.pr_number}</span>
-                  ${stateBadge(pr)}
-                </div>
-                <div class="pr-branch-title">${title}</div>
-                <div class="pr-branch-foot">
-                  <span class="pr-branch-read">${pr.post_slug ? '이 기여 · 글 보기' : 'GitHub에서 보기'}</span>
-                </div>
-              </a>
-            </div>`;
-          })
-          .join('');
-
-        document.getElementById('prList').innerHTML = items;
+        prItems = data.items;
         document.getElementById('prSummary').textContent =
           `${data.items.length}건 · ` +
           (data.open > 0 ? `열림 ${data.open}건` : '열림 없음') +
           (data.merged > 0 ? ` · 머지 ${data.merged}건` : '');
         const updated = data.last_updated ? (data.last_updated.slice(0, 16) || '').replace('T', ' ') : '—';
         document.getElementById('prUpdated').textContent = `마지막 갱신: ${updated}`;
-        section.style.display = '';
+        renderOssRows();
       })
       .catch((err) => console.warn('failed to load PRs', err));
   }
