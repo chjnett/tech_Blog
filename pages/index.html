@@ -297,12 +297,14 @@
     transform:translateY(-2px);
   }
   .pr-branch:hover .pr-branch-title{color:var(--ink);}
-  /* 카드 안 브랜치 노드: 점 + 가지 선 */
+  /* 카드 안 브랜치 노드: 점 + 가지 선 — 클릭 시 GitHub PR로 이동 */
   .pr-node{
+    position:absolute;
+    left:20px; top:22px;
     display:inline-flex;
     align-items:center;
     gap:6px;
-    flex-shrink:0;
+    text-decoration:none;
   }
   .pr-node::before{   /* 커밋 노드 점 */
     content:'';
@@ -311,15 +313,25 @@
     background:var(--ink);
     border:2px solid var(--line);
     box-sizing:border-box;
+    transition:box-shadow .12s ease;
   }
   .pr-node::after{    /* 가지 선 */
     content:'';
     width:14px; height:0;
     border-top:1.5px solid var(--line);
+    transition:border-color .12s ease;
   }
+  .pr-node:hover::before{box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
+  .pr-node:hover::after{border-color:var(--ink-soft);}
   .pr-branch.merged .pr-node::before{background:#fff; border-color:var(--ink-soft);}
   .pr-branch.closed .pr-node::before{background:var(--bg-soft); border-color:var(--ink-soft);}
   .pr-branch.ci-failure .pr-node::before{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
+  /* 카드 본문 링크 (노드 공간만큼 좌측 여백) */
+  .pr-branch-main{
+    display:block;
+    padding-left:32px;
+    text-decoration:none;
+  }
   .pr-branch-row{
     display:flex;
     align-items:center;
@@ -720,18 +732,22 @@
             const repo = escapeHtml(pr.repo || '');
             const tag = escapeHtml((pr.tags && pr.tags[0]) || (pr.post_slug ? '기여' : ''));
             const extAttr = external ? ' target="_blank" rel="noopener"' : '';
-            return `<a class="${branchClass(pr).trim()}" href="${href}"${extAttr}>
-              <div class="pr-branch-row">
-                <span class="pr-node" aria-hidden="true"></span>
-                <span class="pr-branch-repo">${repo}</span>
-                <span class="pr-branch-num">#${pr.pr_number}</span>
-                ${stateBadge(pr)}
-              </div>
-              <div class="pr-branch-title">${title}</div>
-              <div class="pr-branch-foot">
-                <span class="pr-branch-read">${pr.post_slug ? '이 기여 · 글 보기' : 'GitHub에서 보기'}</span>
-              </div>
-            </a>`;
+            // 카드 = div, 노드(●──)는 GitHub PR 링크, 본문은 기여글(or GitHub) 링크
+            return `<div class="${branchClass(pr).trim()}">
+              <a class="pr-node" href="${pr.url}" target="_blank" rel="noopener"
+                 aria-label="GitHub에서 PR 열기" title="GitHub에서 열기"></a>
+              <a class="pr-branch-main" href="${href}"${extAttr}>
+                <div class="pr-branch-row">
+                  <span class="pr-branch-repo">${repo}</span>
+                  <span class="pr-branch-num">#${pr.pr_number}</span>
+                  ${stateBadge(pr)}
+                </div>
+                <div class="pr-branch-title">${title}</div>
+                <div class="pr-branch-foot">
+                  <span class="pr-branch-read">${pr.post_slug ? '이 기여 · 글 보기' : 'GitHub에서 보기'}</span>
+                </div>
+              </a>
+            </div>`;
           })
           .join('');
 
