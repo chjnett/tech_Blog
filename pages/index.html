@@ -226,21 +226,30 @@
   }
   .empty-state.visible{display:block;}
 
-  /* ---------- PR STATUS ---------- */
+  /* ---------- PR STATUS (브랜치 + 기여 패널) ---------- */
   .oss-grid{
     max-width:var(--maxw);
     margin:0 auto;
+    padding:0 24px 96px;
+  }
+  /* 하나의 통일된 박스: 좌(브랜치) + 우(기여) */
+  .oss-panel{
     display:grid;
     grid-template-columns:0.85fr 1.15fr;
-    gap:32px;
-    padding:0 24px 96px;
-    align-items:start;
+    align-items:stretch;             /* 두 열 같은 높이 */
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+    background:var(--bg);
   }
-  .pr-section{
+  .oss-panel .pr-section{
     min-width:0;
+    padding:26px 24px;
+    border-right:1px solid var(--line);
   }
-  .contrib-section{
+  .oss-panel .contrib-section{
     min-width:0;
+    padding:26px 24px;
   }
   .pr-head{
     display:flex;
@@ -248,9 +257,7 @@
     justify-content:space-between;
     flex-wrap:wrap;
     gap:8px;
-    border-top:1px solid var(--line);
-    padding-top:32px;
-    margin-bottom:8px;
+    margin-bottom:14px;
   }
   .pr-title{
     font-family:var(--mono);
@@ -391,7 +398,7 @@
     gap:22px;
   }
   /* 좌우 배치된 우측 열에서는 카드를 1열 세로로 (폭이 좁으므로) */
-  .oss-grid .contrib-grid{
+  .oss-panel .contrib-grid{
     grid-template-columns:1fr;
     gap:14px;
   }
@@ -453,7 +460,11 @@
     .hero-minimal{padding:48px 24px 32px;}
     .posts-grid{grid-template-columns:1fr;}
     .contrib-grid{grid-template-columns:1fr;}
-    .oss-grid{grid-template-columns:1fr;}
+    .oss-panel{grid-template-columns:1fr;}
+    .oss-panel .pr-section{
+      border-right:none;
+      border-bottom:1px solid var(--line);
+    }
     .filter-pills{gap:5px;}
   }
 
@@ -491,26 +502,28 @@
   </div>
 </section>
 
-<!-- 오픈소스: 브랜치(좌) + 기여한 글(우) -->
+<!-- 오픈소스: 브랜치(좌) + 기여한 글(우) — 하나의 패널 -->
 <div class="oss-grid">
-  <!-- PR 브랜치 그래프 (왼쪽) -->
-  <section class="pr-section" id="prSection" style="display:none" aria-label="오픈소스 기여 PR 상태">
-    <div class="pr-head">
-      <span class="pr-title">Open Source PRs</span>
-      <span class="pr-summary" id="prSummary"></span>
-    </div>
-    <p class="pr-updated" id="prUpdated"></p>
-    <div class="pr-list" id="prList"></div>
-  </section>
+  <div class="oss-panel">
+    <!-- PR 브랜치 그래프 (왼쪽) -->
+    <section class="pr-section" id="prSection" style="display:none" aria-label="오픈소스 기여 PR 상태">
+      <div class="pr-head">
+        <span class="pr-title">Open Source PRs</span>
+        <span class="pr-summary" id="prSummary"></span>
+      </div>
+      <p class="pr-updated" id="prUpdated"></p>
+      <div class="pr-list" id="prList"></div>
+    </section>
 
-  <!-- 기여한 글 (오른쪽) -->
-  <section class="contrib-section" id="contribSection" style="display:none" aria-label="오픈소스 기여한 글">
-    <div class="pr-head">
-      <span class="pr-title">기여한 글</span>
-      <span class="pr-summary" id="contribCount"></span>
-    </div>
-    <div class="contrib-grid" id="contribGrid"></div>
-  </section>
+    <!-- 기여한 글 (오른쪽) -->
+    <section class="contrib-section" id="contribSection" style="display:none" aria-label="오픈소스 기여한 글">
+      <div class="pr-head">
+        <span class="pr-title">기여한 글</span>
+        <span class="pr-summary" id="contribCount"></span>
+      </div>
+      <div class="contrib-grid" id="contribGrid"></div>
+    </section>
+  </div>
 </div>
 
 <script>
