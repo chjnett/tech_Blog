@@ -278,8 +278,20 @@
     color:var(--ink-soft);
     margin-bottom:14px;
   }
-  /* ── PR 브랜치 (카드형 — 기여 카드와 같은 칸 느낌) ── */
-  .pr-list{display:block;}
+  /* ── PR 브랜치 (카드형 + 브랜치 그래프) ── */
+  .pr-list{
+    display:block;
+    position:relative;
+    padding-left:34px;          /* 트렁크 + 가지 영역 */
+  }
+  /* main 트렁크 (세로 축) */
+  .pr-list::before{
+    content:'';
+    position:absolute;
+    left:10px; top:8px; bottom:8px;
+    width:2px;
+    background:var(--line);
+  }
   .pr-branch{
     position:relative;
     display:block;
@@ -297,29 +309,28 @@
     transform:translateY(-2px);
   }
   .pr-branch:hover .pr-branch-title{color:var(--ink);}
-  /* 카드 안 브랜치 노드: 점 + 가지 선 */
-  .pr-node{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    flex-shrink:0;
-  }
-  .pr-node::before{   /* 커밋 노드 점 */
+  /* 트렁크 → 카드 가지 선 */
+  .pr-branch::before{
     content:'';
-    width:9px; height:9px;
+    position:absolute;
+    left:-34px; top:24px;
+    width:34px; height:0;
+    border-top:1.5px solid var(--line);
+  }
+  /* 트렁크 접점 커밋 노드 점 */
+  .pr-branch::after{
+    content:'';
+    position:absolute;
+    left:-28px; top:19px;
+    width:10px; height:10px;
     border-radius:50%;
     background:var(--ink);
     border:2px solid var(--line);
     box-sizing:border-box;
   }
-  .pr-node::after{    /* 가지 선 */
-    content:'';
-    width:14px; height:0;
-    border-top:1.5px solid var(--line);
-  }
-  .pr-branch.merged .pr-node::before{background:#fff; border-color:var(--ink-soft);}
-  .pr-branch.closed .pr-node::before{background:var(--bg-soft); border-color:var(--ink-soft);}
-  .pr-branch.ci-failure .pr-node::before{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
+  .pr-branch.merged::after{background:#fff; border-color:var(--ink-soft);}
+  .pr-branch.closed::after{background:var(--bg-soft); border-color:var(--ink-soft);}
+  .pr-branch.ci-failure::after{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
   .pr-branch-row{
     display:flex;
     align-items:center;
@@ -722,7 +733,6 @@
             const extAttr = external ? ' target="_blank" rel="noopener"' : '';
             return `<a class="${branchClass(pr).trim()}" href="${href}"${extAttr}>
               <div class="pr-branch-row">
-                <span class="pr-node" aria-hidden="true"></span>
                 <span class="pr-branch-repo">${repo}</span>
                 <span class="pr-branch-num">#${pr.pr_number}</span>
                 ${stateBadge(pr)}
