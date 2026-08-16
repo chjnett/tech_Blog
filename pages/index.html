@@ -311,6 +311,18 @@
     color:var(--ink);
     letter-spacing:-0.005em;
   }
+  .pr-read-row{
+    margin-top:2px;
+    display:flex;
+    justify-content:flex-end;
+  }
+  .pr-read{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--ink-soft);
+    letter-spacing:0.01em;
+  }
+  .pr-link:hover .pr-read{color:var(--ink);}
   .pr-empty{
     font-family:var(--mono);
     font-size:12.5px;
@@ -529,15 +541,21 @@
 
         const items = data.items
           .map((pr) => {
-            const href = pr.url;
+            // 연관 기여 글이 있으면 /oss/:slug로, 없으면 GitHub PR로 폴백.
+            const href = pr.post_slug ? `/oss/${encodeURIComponent(pr.post_slug)}` : pr.url;
+            const external = !pr.post_slug;
             const title = escapeHtml(pr.title || `#${pr.pr_number}`);
             const repo = escapeHtml(pr.repo || '');
-            return `<a class="pr-link" href="${href}" target="_blank" rel="noopener">
+            const readLink = pr.post_slug
+              ? '<span class="pr-read">이 기여 · 글 보기 →</span>'
+              : '<span class="pr-read">GitHub에서 보기 →</span>';
+            return `<a class="pr-link" href="${href}" ${external ? 'target="_blank" rel="noopener"' : ''}>
               <div class="pr-meta">
                 <span class="pr-repo">${repo} #${pr.pr_number}</span>
                 ${stateBadge(pr)}
               </div>
               <div class="pr-link-title">${title}</div>
+              <div class="pr-read-row">${readLink}</div>
             </a>`;
           })
           .join('');

@@ -96,3 +96,62 @@ CREATE TABLE pr_status (
 - 리뷰 대시보드와 같은 "발행 승인" 흐름은 만들지 않는다 (PR 상태는 표시만).
 - 논문 파이프라인(papers)와는 무관.
 - 새 콘텐츠 블록(글 본문 안)은 만들지 않는다.
+
+---
+
+# 부록 — 기여 상세 페이지 (`/oss/:slug`)
+
+PR 카드가 단순히 GitHub로만 열리지 않고, **해당 기여를 다루는 전용 블로그 페이지**로
+연결되도록 확장한다. 기존 디자인 시스템(모노크롬, code/terminal/figure 컴포넌트)을 그대로
+재사용한다.
+
+## A. 목적
+
+- PR 카드 클릭 → `/oss/:slug` 기여 상세 페이지.
+- 그 페이지에 GitHub 링크(전체 코드/PR) + 기여 분석글(왜 고쳤는지, 어떻게 파악했는지,
+  삽질 과정)을 기술 블로그 형식으로 제공.
+- "오픈소스 기여"가 개인 포트폴리오의 핵심이므로, 상태 카드(숫자)를 넘어 **기여 스토리**로
+  승화시키는 것.
+
+## B. 데이터 모델
+
+`pr_status`(PR 상태 캐시)와는 별개로, 기여 상세 글이 `posts` 테이블 기존 체계를 재사용한다.
+
+```
+- slug: oss-<something>   (예: oss-sqlfluff-pin-piptools)
+- title: "SQLFluff Dockerfile 의존성 고정에 기여한 기록"
+- source_type: 'manual'   (수동 작성 컨텐츠 — 기존 파이프라인 그대로)
+- tags: [oss, sqlfluff, ...]
+- status: draft           (발행은 사람 승인 — 규칙 준수)
+- source_ref: 해당 PR/GitHub 링크
+```
+
+별도 테이블 추가 없음. `posts`에 `oss-*` 슬러그로 올린다. 홈 PR 카드가 이 slug를 가리키도록
+`pr_status`에 `post_slug` 컬럼을 추가하거나, 카드 렌더가 slug 규칙으로 연관을 찾을 수 있다.
+(간단하게: 카드에 `post_slug`를 명시적으로 연결)
+
+## C. 라우트
+
+- `GET /oss/:slug` — `posts`에서 해당 기여 글 조회 후, `post-page.ts`와 동일한 아티클 셸로
+  SSR. 상단에 "GitHub에서 보기" 링크(PR/전체 코드)를 표시.
+  - 기여글이 `draft`면 미노출(기존 규칙).
+- 홈 PR 카드의 `post_slug`가 있으면 해당 `oss-*` 글로 이동, 없으면 GitHub PR로 폴백.
+
+## D. 디자인
+
+- 기존 `article-header`, `article-body`, `code-block/terminal/figure-block` 스타일 그대로.
+- 추가 요소 1종: 기여 헤더에 **GitHub 링크 배지**(repo · PR 번호 · 머지/오픈 상태) — 색 없이
+  테두리·굵기·위치로만.
+- 본문은 code/terminal/figure 컴포넌트를 활용한 기술 풀이.
+
+## E. 구현 순서
+
+1. `pr_status`에 `post_slug` 컬럼 추가(마이그레이션 0003, 기존 행 무영향 — `ALTER TABLE ... ADD COLUMN`).
+2. `GET /oss/:slug` SSR 라우트 작성 (post-page 셸 + GitHub 배지 재사용/확장).
+3. 홈 PR 카드를 `post_slug` 기반으로 기여글 또는 GitHub로 연결.
+4. 대표 기여 1편 작성(draft) + 태그/디자인 검토.
+
+## F. 체크포인트 전 참고
+
+- 발행은 기존과 동일: draft → 사람 승인 → published. 자동 발행 없음.
+- `pr_status` 스키마 변경(ADD COLUMN)은 기존 데이터를 유지하므로 안전 — 적용 전 확인 대기.

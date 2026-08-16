@@ -2,7 +2,7 @@ import { handleListPosts, handleGetPostBySlug } from './routes/posts';
 import { handleRss } from './routes/rss';
 import { handlePostPage } from './routes/post-page';
 import { handlePublishPost, isAuthorized } from './routes/admin';
-import { handleListPrs, handleRefreshPrs } from './routes/prs';
+import { handleListPrs, handleRefreshPrs, handleLinkPrPost } from './routes/prs';
 
 export interface Env {
   DB: D1Database;
@@ -34,12 +34,23 @@ export default {
         return await handlePostPage(env.DB, postPageMatch[1]);
       }
 
+      // 기여 상세 페이지(/oss/:slug) — posts 테이블의 oss-* 글로, post-page 셸 재사용.
+      // source_ref에 PR/GitHub 링크를 넣으면 동일하게 GitHub 배지가 표시된다.
+      const ossPageMatch = pathname.match(/^\/oss\/([^/]+)$/);
+      if (ossPageMatch && request.method === 'GET') {
+        return await handlePostPage(env.DB, ossPageMatch[1]);
+      }
+
       if (pathname === '/api/prs' && request.method === 'GET') {
         return await handleListPrs(env.DB);
       }
 
       if (pathname === '/api/prs/refresh' && request.method === 'POST') {
         return await handleRefreshPrs(request, env.DB, env.GITHUB_TOKEN);
+      }
+
+      if (pathname === '/api/prs/link' && request.method === 'POST') {
+        return await handleLinkPrPost(request, env.DB, env.ADMIN_TOKEN);
       }
 
       if (pathname === '/admin/publish' && request.method === 'POST') {

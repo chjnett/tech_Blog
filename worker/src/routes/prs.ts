@@ -1,6 +1,6 @@
-// 홈 PR 섹션: /api/prs(조회) + /api/prs/refresh(관리자 갱신).
+// 홈 PR 섹션: /api/prs(조회) + /api/prs/refresh(관리자 갱신) + /api/prs/link(기여글 연결).
 // 스펙: docs/superpowers/specs/2026-08-16-github-pr-status-design.md
-import { listPrs, getPrLastUpdated, upsertPrs } from '../db';
+import { listPrs, getPrLastUpdated, upsertPrs, setPrPostSlug } from '../db';
 import { fetchMyPrs, fetchPrCheckRuns } from '../github';
 import { isAuthorized } from './admin';
 
@@ -51,4 +51,33 @@ export async function handleRefreshPrs(
     console.error('PR refresh error:', err);
     return Response.json({ error: 'refresh failed' }, { status: 500 });
   }
+}
+
+/**
+ * PR에 기여 상세 글(oss-* slug)을 연결한다. 관리자 인증(ADMIN_TOKEN) 필요.
+ * body: { repo, pr_number, post_slug }
+ * post_slug가 null/'' 이면 연결 해제.
+ */
+export async function handleLinkPrPost(
+  request: Request,
+  db: D1Database,
+  adminToken: string | undefined
+): Promise<Response> {
+  if (!(await isAuthorized(request, adminToken))) {
+    return Response.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  const body = (await request.json().catch(() => null)) as
+    | { repo?: string; pr_number?: number; post_slug?: string | null }
+    | null;
+  if (!body || !body.repo || !body.pr_number) {
+    return Response.json({ error: 'missing repo/pr_number' }, { status: 400 });
+  }
+  const postSlug = body.post_slug?.trim() || null;
+  await setPrPostSlug(db, body.repo, body.pr_number, postSlug);
+  return Response.json({
+    success: true,
+    repo: body.repo,
+    pr_number: body.pr_number,
+    post_slug: postSlug,
+  });
 }

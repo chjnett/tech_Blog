@@ -31,7 +31,7 @@ export async function getPublishedPostBySlug(
 export async function listPrs(db: D1Database): Promise<GitHubPrRow[]> {
   const { results } = await db
     .prepare(
-      "SELECT repo, pr_number, title, url, state, merged, head_sha, ci_combined, authored_at, updated_at FROM pr_status ORDER BY CASE WHEN state='open' THEN 0 ELSE 1 END, updated_at DESC"
+      "SELECT repo, pr_number, title, url, state, merged, head_sha, ci_combined, authored_at, updated_at, post_slug FROM pr_status ORDER BY CASE WHEN state='open' THEN 0 ELSE 1 END, updated_at DESC"
     )
     .all<GitHubPrRow>();
   return results;
@@ -57,6 +57,7 @@ export async function upsertPrs(db: D1Database, rows: GitHubPrRow[]): Promise<vo
       ci_combined = excluded.ci_combined,
       authored_at = excluded.authored_at,
       updated_at = excluded.updated_at
+      -- post_slug는 refresh가 건드리지 않는다(보존). 연결은 별도 엔드포인트로만.
   `);
 
   await db.batch(
@@ -75,4 +76,17 @@ export async function upsertPrs(db: D1Database, rows: GitHubPrRow[]): Promise<vo
       )
     )
   );
+}
+
+/** 특정 PR에 기여 상세 글(post_slug)을 연결한다. */
+export async function setPrPostSlug(
+  db: D1Database,
+  repo: string,
+  prNumber: number,
+  postSlug: string | null
+): Promise<void> {
+  await db
+    .prepare('UPDATE pr_status SET post_slug = ? WHERE repo = ? AND pr_number = ?')
+    .bind(postSlug, repo, prNumber)
+    .run();
 }

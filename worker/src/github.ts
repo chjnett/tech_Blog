@@ -12,6 +12,7 @@ export interface GitHubPrRow {
   ci_combined: string | null;
   authored_at: string | null;  // PR 생성 시각
   updated_at: string;          // PR 마지막 갱신 시각 (걸러낼 때 기준)
+  post_slug?: string | null;   // 연관 기여 상세 글 슬러그 (refresh 시 보존, GitHub에서 안 옴)
 }
 
 interface SearchPrItem {
