@@ -261,39 +261,98 @@
     color:var(--ink-soft);
     margin-bottom:14px;
   }
-  .pr-list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+  .pr-list{display:block;}
+
+  /* ── 깃 브랜치 그래프 ── */
+  .pr-graph{
+    position:relative;
+    margin-top:8px;
+    padding-left:26px;                 /* 노드 원을 위한 좌측 여백 */
   }
-  .pr-link{
+  /* main 트렁크 (세로 축) */
+  .pr-graph::before{
+    content:'';
+    position:absolute;
+    left:11px; top:8px; bottom:8px;
+    width:2px;
+    background:var(--line);
+  }
+  .pr-branch{
+    position:relative;
+    display:block;
     text-decoration:none;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    padding:14px 16px;
-    border:1px solid var(--line);
-    border-radius:10px;
-    transition:border-color .15s ease, background .15s ease;
+    padding:9px 6px 9px 4px;
+    margin-bottom:2px;
+    border-radius:8px;
+    transition:background .12s ease;
   }
-  .pr-link:hover{border-color:var(--ink-soft); background:var(--bg-soft);}
-  .pr-link:hover .pr-link-title{color:var(--ink);}
-  .pr-meta{
+  .pr-branch:hover{background:var(--bg-soft);}
+  .pr-branch:hover .pr-branch-title{text-decoration:underline; text-underline-offset:2px;}
+  /* 가지(세로→가로 꺾이는 선) */
+  .pr-branch::before{
+    content:'';
+    position:absolute;
+    left:-22px; top:50%;
+    width:24px; height:0;
+    border-top:1.5px solid var(--line);
+  }
+  /* 커밋 노드 점 */
+  .pr-branch::after{
+    content:'';
+    position:absolute;
+    left:-26px; top:calc(50% - 5px);
+    width:10px; height:10px;
+    border-radius:50%;
+    background:var(--ink);
+    border:2px solid var(--line);
+    box-sizing:border-box;
+  }
+  .pr-branch.merged::after{background:#fff; border-color:var(--ink-soft);}
+  .pr-branch.closed::after{background:var(--bg-soft); border-color:var(--ink-soft);}
+  .pr-branch.ci-failure::after{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
+  .pr-branch-row{
     display:flex;
-    align-items:center;
+    align-items:baseline;
     gap:10px;
     flex-wrap:wrap;
   }
-  .pr-repo{
+  .pr-branch-repo{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--ink-soft);
+    font-weight:600;
+  }
+  .pr-branch-num{
     font-family:var(--mono);
     font-size:10.5px;
     color:var(--ink-soft);
   }
+  .pr-branch-title{
+    font-size:14px;
+    font-weight:600;
+    line-height:1.4;
+    color:var(--ink);
+    letter-spacing:-0.005em;
+    margin-top:1px;
+  }
+  .pr-branch-foot{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:3px;
+    flex-wrap:wrap;
+  }
+  .pr-branch-read{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--ink-soft);
+  }
+  .pr-branch:hover .pr-branch-read{color:var(--ink);}
   .pr-state{
     font-family:var(--mono);
-    font-size:10.5px;
+    font-size:9.5px;
     font-weight:600;
-    padding:1px 8px;
+    padding:1px 7px;
     border-radius:99px;
   }
   .pr-state.open{background:var(--ink); color:#fff;}
@@ -304,30 +363,12 @@
     color:var(--ink);
     font-weight:700;
   }
-  .pr-link-title{
-    font-size:14.5px;
-    font-weight:600;
-    line-height:1.4;
-    color:var(--ink);
-    letter-spacing:-0.005em;
-  }
-  .pr-read-row{
-    margin-top:2px;
-    display:flex;
-    justify-content:flex-end;
-  }
-  .pr-read{
+  .pr-btn{
     font-family:var(--mono);
-    font-size:10.5px;
+    font-size:10px;
     color:var(--ink-soft);
-    letter-spacing:0.01em;
-  }
-  .pr-link:hover .pr-read{color:var(--ink);}
-  .pr-empty{
-    font-family:var(--mono);
-    font-size:12.5px;
-    color:var(--ink-soft);
-    padding:24px 4px;
+    text-decoration:underline;
+    text-underline-offset:2px;
   }
 
   /* ---------- CONTRIB (기여한 글) ---------- */
@@ -626,18 +667,25 @@
 
         // 상태 배지 렌더 (모노크롬: 텍스트·테두리·흑백 반전만)
         function stateBadge(pr) {
-          if (pr.merged) return '<span class="pr-state merged">merged</span>';
+          if (pr.merged) return '<span class="pr-state merged">머지</span>';
           if (pr.state === 'open') {
             const ci = pr.ci_combined;
             if (ci === 'failure') {
-              return '<span class="pr-state ci-failure">✗ CI failed</span>';
+              return '<span class="pr-state ci-failure">CI 실패</span>';
             }
             if (ci === 'pending') {
-              return '<span class="pr-state open">open · pending</span>';
+              return '<span class="pr-state open">진행</span>';
             }
             return '<span class="pr-state open">open</span>';
           }
           return '<span class="pr-state closed">closed</span>';
+        }
+
+        // 그래프 노드 클래스: 상태에 따라 원의 채움/테두리 결정
+        function branchClass(pr) {
+          if (pr.merged) return ' pr-branch merged';
+          if (pr.state === 'open' && pr.ci_combined === 'failure') return ' pr-branch ci-failure';
+          return pr.state === 'open' ? ' pr-branch' : ' pr-branch closed';
         }
 
         const items = data.items
@@ -647,21 +695,24 @@
             const external = !pr.post_slug;
             const title = escapeHtml(pr.title || `#${pr.pr_number}`);
             const repo = escapeHtml(pr.repo || '');
-            const readLink = pr.post_slug
-              ? '<span class="pr-read">이 기여 · 글 보기 →</span>'
-              : '<span class="pr-read">GitHub에서 보기 →</span>';
-            return `<a class="pr-link" href="${href}" ${external ? 'target="_blank" rel="noopener"' : ''}>
-              <div class="pr-meta">
-                <span class="pr-repo">${repo} #${pr.pr_number}</span>
+            const tag = escapeHtml((pr.tags && pr.tags[0]) || (pr.post_slug ? '기여' : ''));
+            const extAttr = external ? ' target="_blank" rel="noopener"' : '';
+            return `<a class="${branchClass(pr).trim()}" href="${href}"${extAttr}>
+              <div class="pr-branch-row">
+                <span class="pr-branch-repo">${repo}</span>
+                <span class="pr-branch-num">#${pr.pr_number}</span>
                 ${stateBadge(pr)}
               </div>
-              <div class="pr-link-title">${title}</div>
-              <div class="pr-read-row">${readLink}</div>
+              <div class="pr-branch-title">${title}</div>
+              <div class="pr-branch-foot">
+                <span class="pr-branch-read">${pr.post_slug ? '이 기여 · 글 보기' : 'GitHub에서 보기'}</span>
+                ${external ? '' : ''}
+              </div>
             </a>`;
           })
           .join('');
 
-        document.getElementById('prList').innerHTML = items;
+        document.getElementById('prList').innerHTML = `<div class="pr-graph">${items}</div>`;
         document.getElementById('prSummary').textContent =
           `${data.items.length}건 · ` +
           (data.open > 0 ? `열림 ${data.open}건` : '열림 없음') +
