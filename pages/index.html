@@ -278,58 +278,51 @@
     color:var(--ink-soft);
     margin-bottom:14px;
   }
+  /* ── PR 브랜치 (카드형 — 기여 카드와 같은 칸 느낌) ── */
   .pr-list{display:block;}
-
-  /* ── 깃 브랜치 그래프 ── */
-  .pr-graph{
-    position:relative;
-    margin-top:8px;
-    padding-left:26px;                 /* 노드 원을 위한 좌측 여백 */
-  }
-  /* main 트렁크 (세로 축) */
-  .pr-graph::before{
-    content:'';
-    position:absolute;
-    left:11px; top:8px; bottom:8px;
-    width:2px;
-    background:var(--line);
-  }
   .pr-branch{
     position:relative;
     display:block;
     text-decoration:none;
-    padding:9px 6px 9px 4px;
-    margin-bottom:2px;
-    border-radius:8px;
-    transition:background .12s ease;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--bg);
+    padding:16px 18px 14px 20px;
+    margin-bottom:12px;
+    transition:border-color .15s ease, box-shadow .2s ease, transform .2s ease;
   }
-  .pr-branch:hover{background:var(--bg-soft);}
-  .pr-branch:hover .pr-branch-title{text-decoration:underline; text-underline-offset:2px;}
-  /* 가지(세로→가로 꺾이는 선) */
-  .pr-branch::before{
-    content:'';
-    position:absolute;
-    left:-22px; top:50%;
-    width:24px; height:0;
-    border-top:1.5px solid var(--line);
+  .pr-branch:hover{
+    border-color:var(--ink-soft);
+    box-shadow:0 8px 24px rgba(16,19,26,0.07);
+    transform:translateY(-2px);
   }
-  /* 커밋 노드 점 */
-  .pr-branch::after{
+  .pr-branch:hover .pr-branch-title{color:var(--ink);}
+  /* 카드 안 브랜치 노드: 점 + 가지 선 */
+  .pr-node{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .pr-node::before{   /* 커밋 노드 점 */
     content:'';
-    position:absolute;
-    left:-26px; top:calc(50% - 5px);
-    width:10px; height:10px;
+    width:9px; height:9px;
     border-radius:50%;
     background:var(--ink);
     border:2px solid var(--line);
     box-sizing:border-box;
   }
-  .pr-branch.merged::after{background:#fff; border-color:var(--ink-soft);}
-  .pr-branch.closed::after{background:var(--bg-soft); border-color:var(--ink-soft);}
-  .pr-branch.ci-failure::after{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
+  .pr-node::after{    /* 가지 선 */
+    content:'';
+    width:14px; height:0;
+    border-top:1.5px solid var(--line);
+  }
+  .pr-branch.merged .pr-node::before{background:#fff; border-color:var(--ink-soft);}
+  .pr-branch.closed .pr-node::before{background:var(--bg-soft); border-color:var(--ink-soft);}
+  .pr-branch.ci-failure .pr-node::before{background:var(--ink); border-color:var(--ink); box-shadow:0 0 0 3px rgba(16,19,26,0.12);}
   .pr-branch-row{
     display:flex;
-    align-items:baseline;
+    align-items:center;
     gap:10px;
     flex-wrap:wrap;
   }
@@ -345,12 +338,12 @@
     color:var(--ink-soft);
   }
   .pr-branch-title{
-    font-size:14px;
+    font-size:15px;
     font-weight:600;
     line-height:1.4;
     color:var(--ink);
     letter-spacing:-0.005em;
-    margin-top:1px;
+    margin-top:4px;
   }
   .pr-branch-foot{
     display:flex;
@@ -729,6 +722,7 @@
             const extAttr = external ? ' target="_blank" rel="noopener"' : '';
             return `<a class="${branchClass(pr).trim()}" href="${href}"${extAttr}>
               <div class="pr-branch-row">
+                <span class="pr-node" aria-hidden="true"></span>
                 <span class="pr-branch-repo">${repo}</span>
                 <span class="pr-branch-num">#${pr.pr_number}</span>
                 ${stateBadge(pr)}
@@ -736,13 +730,12 @@
               <div class="pr-branch-title">${title}</div>
               <div class="pr-branch-foot">
                 <span class="pr-branch-read">${pr.post_slug ? '이 기여 · 글 보기' : 'GitHub에서 보기'}</span>
-                ${external ? '' : ''}
               </div>
             </a>`;
           })
           .join('');
 
-        document.getElementById('prList').innerHTML = `<div class="pr-graph">${items}</div>`;
+        document.getElementById('prList').innerHTML = items;
         document.getElementById('prSummary').textContent =
           `${data.items.length}건 · ` +
           (data.open > 0 ? `열림 ${data.open}건` : '열림 없음') +
