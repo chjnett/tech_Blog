@@ -6,15 +6,9 @@ import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-json';
+import { escapeHtml } from './utils';
 
 const SUPPORTED_LANGUAGES = new Set(['python', 'javascript', 'typescript', 'bash', 'json']);
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
 
 export function highlightCode(code: string, lang: string): { html: string; lang: string } {
   const normalized = lang.toLowerCase().trim();

@@ -2,14 +2,7 @@ import type { FigureEdge, FigureSpec, PositionedNode } from './figure-layout';
 import { computeLayout, NODE_WIDTH } from './figure-layout';
 import type { GroupsSpec } from './figure-groups';
 import { renderGroupsFigure } from './figure-groups';
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+import { escapeHtml } from './utils';
 
 function tspans(lines: string[], x: number): string {
   return lines

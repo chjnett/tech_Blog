@@ -1,9 +1,4 @@
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
+import { escapeHtml } from './utils';
 
 export function renderTerminalBlock(text: string): string {
   const lines = text.replace(/\n$/, '').split('\n');

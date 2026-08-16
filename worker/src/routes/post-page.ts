@@ -1,22 +1,6 @@
 import { getPublishedPostBySlug } from '../db';
 import { renderMarkdown } from '../render';
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function parseTags(tags: string | null): string[] {
-  if (!tags) return [];
-  try {
-    return JSON.parse(tags);
-  } catch {
-    return [];
-  }
-}
+import { escapeHtml, parseTags } from '../utils';
 
 export async function handlePostPage(db: D1Database, slug: string): Promise<Response> {
   const row = await getPublishedPostBySlug(db, slug);

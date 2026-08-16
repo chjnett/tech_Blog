@@ -11,6 +11,8 @@ export interface GroupsSpec {
   groups: FigureGroup[];
 }
 
+import { escapeHtml } from './utils';
+
 const SQUARE = 34;
 const SQUARE_GAP = 12;
 const ROW_GAP = 46;
@@ -18,14 +20,6 @@ const HEADER_H = 30;
 const FOOTER_H = 26;
 const PAD = 18;
 const GROUP_GAP = 24;
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 function rowWidth(count: number): number {
   return count * SQUARE + Math.max(0, count - 1) * SQUARE_GAP;

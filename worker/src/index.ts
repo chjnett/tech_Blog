@@ -33,7 +33,7 @@ export default {
       }
 
       if (pathname === '/admin/publish' && request.method === 'POST') {
-        if (!isAuthorized(request, env.ADMIN_TOKEN)) {
+        if (!(await isAuthorized(request, env.ADMIN_TOKEN))) {
           return Response.json({ error: 'unauthorized' }, { status: 401 });
         }
         const body = await request.json<Record<string, unknown>>();

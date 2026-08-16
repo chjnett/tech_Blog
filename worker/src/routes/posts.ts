@@ -1,17 +1,9 @@
-import type { PostRow } from '../types';
+import type { PostSummary } from '../types';
 import { listPublishedPosts, getPublishedPostBySlug } from '../db';
 import { renderMarkdown } from '../render';
+import { parseTags } from '../utils';
 
-function parseTags(tags: string | null): string[] {
-  if (!tags) return [];
-  try {
-    return JSON.parse(tags);
-  } catch {
-    return [];
-  }
-}
-
-function toSummary(row: PostRow) {
+function toSummary(row: PostSummary) {
   return {
     id: row.id,
     slug: row.slug,
