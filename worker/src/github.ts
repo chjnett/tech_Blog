@@ -19,11 +19,16 @@ interface SearchPrItem {
   title: string;
   html_url: string;
   state: string;
-  pulled_at?: string;
   created_at: string;
   updated_at: string;
   repository_url: string;
-  merged_at: string | null;
+  // /search/issues는 PR 항목의 머지 여부를 최상위가 아닌 pull_request.merged_at로 준다.
+  pull_request?: { merged_at: string | null } | null;
+}
+
+interface PrDetail {
+  state: string;
+  merged: boolean;
   head: { sha: string };
 }
 
@@ -59,18 +64,69 @@ export async function fetchMyPrs(username: string, token: string): Promise<GitHu
   }
 
   const data = (await res.json()) as { items?: SearchPrItem[] };
-  return (data.items ?? []).map((item) => ({
-    repo: (item.repository_url ?? '').replace('https://api.github.com/repos/', ''),
-    pr_number: item.number,
-    title: truncate(item.title),
-    url: item.html_url,
-    state: item.state === 'closed' ? 'closed' : 'open',
-    merged: Boolean(item.merged_at),
-    head_sha: item.head?.sha ?? null,
-    ci_combined: null, // 아래에서 head 커밋 status로 채운다
-    authored_at: item.created_at ?? null,
-    updated_at: item.updated_at ?? item.created_at,
-  }));
+
+  // Search API에는 head sha가 없으므로, 각 PR의 상세(/pulls/{number})를 조회해
+  // merged + head.sha를 확정한다. 수동 refresh라 1회성이고, 컨커런시로 묶는다.
+  const items = data.items ?? [];
+  const details = await fetchPrDetails(items, token);
+
+  return items.map((item) => {
+    const detail = details.get(item.number);
+    return {
+      repo: (item.repository_url ?? '').replace('https://api.github.com/repos/', ''),
+      pr_number: item.number,
+      title: truncate(item.title),
+      url: item.html_url,
+      state: detail?.state === 'closed' ? 'closed' : 'open',
+      merged: detail?.merged ?? Boolean(item.pull_request?.merged_at),
+      head_sha: detail?.head?.sha ?? null,
+      ci_combined: null, // 아래에서 head 커밋 status로 채운다
+      authored_at: item.created_at ?? null,
+      updated_at: item.updated_at ?? item.created_at,
+    };
+  });
+}
+
+/** 각 PR 상세를 조회해 merged/head.sha를 확정한다. */
+export async function fetchPrDetails(
+  items: SearchPrItem[],
+  token: string,
+  concurrency = 5
+): Promise<Map<number, PrDetail>> {
+  const result = new Map<number, PrDetail>();
+
+  async function worker(queue: SearchPrItem[]) {
+    while (queue.length) {
+      const item = queue.shift()!;
+      const repo = (item.repository_url ?? '').replace('https://api.github.com/repos/', '');
+      // encodeURIComponent를 쓰면 repo의 '/'가 %2F로 인코딩되어 경로가 깨짐(404).
+      // repo는 'owner/repo' 형태로 신뢰되므로 그대로 쓴다.
+      const url = `https://api.github.com/repos/${repo}/pulls/${item.number}`;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${token}`,
+            'User-Agent': 'tech-blog-worker',
+          },
+        });
+        if (res.ok) {
+          const detail = (await res.json()) as PrDetail;
+          result.set(item.number, detail);
+        }
+      } catch {
+        // 상세 조회 실패 시 merged/head는 fallback 값 유지.
+      }
+    }
+  }
+
+  const chunks: SearchPrItem[][] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    chunks.push(items.slice(i, i + concurrency));
+  }
+  await Promise.all(chunks.map((chunk) => worker(chunk)));
+
+  return result;
 }
 
 /**
@@ -88,9 +144,10 @@ export async function fetchPrCheckRuns(
     while (queue.length) {
       const pr = queue.shift()!;
       if (!pr.head_sha) continue;
-      const url = `https://api.github.com/repos/${encodeURIComponent(
-        pr.repo
-      )}/commits/${encodeURIComponent(pr.head_sha)}/status`;
+      // repo의 '/'를 인코딩하지 않는다 (경로 구분자 유지). head_sha는 hex라 인코딩해도 무해.
+      const url = `https://api.github.com/repos/${pr.repo}/commits/${encodeURIComponent(
+        pr.head_sha
+      )}/status`;
       try {
         const res = await fetch(url, {
           headers: {
