@@ -2,11 +2,13 @@ import { handleListPosts, handleGetPostBySlug } from './routes/posts';
 import { handleRss } from './routes/rss';
 import { handlePostPage } from './routes/post-page';
 import { handlePublishPost, isAuthorized } from './routes/admin';
+import { handleListPrs, handleRefreshPrs } from './routes/prs';
 
 export interface Env {
   DB: D1Database;
   SITE_URL: string;
   ADMIN_TOKEN?: string;
+  GITHUB_TOKEN?: string;
 }
 
 export default {
@@ -30,6 +32,14 @@ export default {
       const postPageMatch = pathname.match(/^\/posts\/([^/]+)$/);
       if (postPageMatch && request.method === 'GET') {
         return await handlePostPage(env.DB, postPageMatch[1]);
+      }
+
+      if (pathname === '/api/prs' && request.method === 'GET') {
+        return await handleListPrs(env.DB);
+      }
+
+      if (pathname === '/api/prs/refresh' && request.method === 'POST') {
+        return await handleRefreshPrs(request, env.DB, env.GITHUB_TOKEN);
       }
 
       if (pathname === '/admin/publish' && request.method === 'POST') {

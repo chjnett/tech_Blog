@@ -226,6 +226,98 @@
   }
   .empty-state.visible{display:block;}
 
+  /* ---------- PR STATUS ---------- */
+  .pr-section{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:0 24px 96px;
+  }
+  .pr-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    border-top:1px solid var(--line);
+    padding-top:32px;
+    margin-bottom:8px;
+  }
+  .pr-title{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:600;
+  }
+  .pr-summary{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .pr-updated{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+  }
+  .pr-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .pr-link{
+    text-decoration:none;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding:14px 16px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .pr-link:hover{border-color:var(--ink-soft); background:var(--bg-soft);}
+  .pr-link:hover .pr-link-title{color:var(--ink);}
+  .pr-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .pr-repo{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--ink-soft);
+  }
+  .pr-state{
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:600;
+    padding:1px 8px;
+    border-radius:99px;
+  }
+  .pr-state.open{background:var(--ink); color:#fff;}
+  .pr-state.merged{border:1px solid var(--ink-soft); color:var(--ink-soft);}
+  .pr-state.closed{border:1px solid var(--line); color:var(--ink-soft);}
+  .pr-state.ci-failure{
+    border:1px solid var(--ink);
+    color:var(--ink);
+    font-weight:700;
+  }
+  .pr-link-title{
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.4;
+    color:var(--ink);
+    letter-spacing:-0.005em;
+  }
+  .pr-empty{
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    padding:24px 4px;
+  }
+
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:760px){
     .hero{grid-template-columns:1fr; padding-top:40px;}
@@ -266,6 +358,16 @@
   <div class="posts-grid" id="postsGrid">
     <div class="empty-state" id="emptyState">해당 카테고리의 글이 없습니다.</div>
   </div>
+</section>
+
+<!-- GitHub PR 상태 -->
+<section class="pr-section" id="prSection" style="display:none" aria-label="오픈소스 기여 PR 상태">
+  <div class="pr-head">
+    <span class="pr-title">Open Source PRs</span>
+    <span class="pr-summary" id="prSummary"></span>
+  </div>
+  <p class="pr-updated" id="prUpdated"></p>
+  <div class="pr-list" id="prList"></div>
 </section>
 
 <script>
@@ -396,6 +498,62 @@
       renderCards();   // 초기 카운트 표시
     })
     .catch((err) => console.error('failed to load posts', err));
+
+  /* ── PR 상태 로드 ── */
+  function loadPrs() {
+    fetch('/api/prs')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((data) => {
+        const section = document.getElementById('prSection');
+        if (!data.items || data.items.length === 0) {
+          section.style.display = '';
+          document.getElementById('prSummary').textContent = '기여한 PR 없음';
+          return;
+        }
+
+        // 상태 배지 렌더 (모노크롬: 텍스트·테두리·흑백 반전만)
+        function stateBadge(pr) {
+          if (pr.merged) return '<span class="pr-state merged">merged</span>';
+          if (pr.state === 'open') {
+            const ci = pr.ci_combined;
+            if (ci === 'failure') {
+              return '<span class="pr-state ci-failure">✗ CI failed</span>';
+            }
+            if (ci === 'pending') {
+              return '<span class="pr-state open">open · pending</span>';
+            }
+            return '<span class="pr-state open">open</span>';
+          }
+          return '<span class="pr-state closed">closed</span>';
+        }
+
+        const items = data.items
+          .map((pr) => {
+            const href = pr.url;
+            const title = escapeHtml(pr.title || `#${pr.pr_number}`);
+            const repo = escapeHtml(pr.repo || '');
+            return `<a class="pr-link" href="${href}" target="_blank" rel="noopener">
+              <div class="pr-meta">
+                <span class="pr-repo">${repo} #${pr.pr_number}</span>
+                ${stateBadge(pr)}
+              </div>
+              <div class="pr-link-title">${title}</div>
+            </a>`;
+          })
+          .join('');
+
+        document.getElementById('prList').innerHTML = items;
+        document.getElementById('prSummary').textContent =
+          `${data.items.length}건 · ` +
+          (data.open > 0 ? `열림 ${data.open}건` : '열림 없음') +
+          (data.merged > 0 ? ` · 머지 ${data.merged}건` : '');
+        const updated = data.last_updated ? (data.last_updated.slice(0, 16) || '').replace('T', ' ') : '—';
+        document.getElementById('prUpdated').textContent = `마지막 갱신: ${updated}`;
+        section.style.display = '';
+      })
+      .catch((err) => console.warn('failed to load PRs', err));
+  }
+  loadPrs();
 </script>
 
 </body>

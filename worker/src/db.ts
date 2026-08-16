@@ -1,4 +1,5 @@
 import type { PostDetail, PostSummary } from './types';
+import type { GitHubPrRow } from './github';
 
 // 목록/RSS는 content_md를 필요로 하지 않는다. SELECT * 대신 필요한 컬럼만
 // 조회해 D1에서 읽어오는 바이트를 줄인다.
@@ -23,4 +24,55 @@ export async function getPublishedPostBySlug(
     .bind(slug)
     .first<PostDetail>();
   return row ?? null;
+}
+
+// ── pr_status: 홈 PR 섹션용 캐시 ──────────────────────────────────────
+
+export async function listPrs(db: D1Database): Promise<GitHubPrRow[]> {
+  const { results } = await db
+    .prepare(
+      "SELECT repo, pr_number, title, url, state, merged, head_sha, ci_combined, authored_at, updated_at FROM pr_status ORDER BY CASE WHEN state='open' THEN 0 ELSE 1 END, updated_at DESC"
+    )
+    .all<GitHubPrRow>();
+  return results;
+}
+
+export async function getPrLastUpdated(db: D1Database): Promise<string | null> {
+  const row = await db
+    .prepare('SELECT MAX(updated_at) AS m FROM pr_status')
+    .first<{ m: string | null }>();
+  return row?.m ?? null;
+}
+
+export async function upsertPrs(db: D1Database, rows: GitHubPrRow[]): Promise<void> {
+  const stmt = db.prepare(`
+    INSERT INTO pr_status (repo, pr_number, title, url, state, merged, head_sha, ci_combined, authored_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(repo, pr_number) DO UPDATE SET
+      title = excluded.title,
+      url = excluded.url,
+      state = excluded.state,
+      merged = excluded.merged,
+      head_sha = excluded.head_sha,
+      ci_combined = excluded.ci_combined,
+      authored_at = excluded.authored_at,
+      updated_at = excluded.updated_at
+  `);
+
+  await db.batch(
+    rows.map((r) =>
+      stmt.bind(
+        r.repo,
+        r.pr_number,
+        r.title,
+        r.url,
+        r.state,
+        r.merged ? 1 : 0,
+        r.head_sha,
+        r.ci_combined,
+        r.authored_at,
+        r.updated_at
+      )
+    )
+  );
 }
