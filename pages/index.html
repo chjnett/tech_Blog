@@ -227,10 +227,20 @@
   .empty-state.visible{display:block;}
 
   /* ---------- PR STATUS ---------- */
-  .pr-section{
+  .oss-grid{
     max-width:var(--maxw);
     margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
     padding:0 24px 96px;
+    align-items:start;
+  }
+  .pr-section{
+    min-width:0;
+  }
+  .contrib-section{
+    min-width:0;
   }
   .pr-head{
     display:flex;
@@ -373,14 +383,17 @@
 
   /* ---------- CONTRIB (기여한 글) ---------- */
   .contrib-section{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:0 24px 96px;
+    min-width:0;
   }
   .contrib-grid{
     display:grid;
     grid-template-columns:repeat(2,1fr);
     gap:22px;
+  }
+  /* 좌우 배치된 우측 열에서는 카드를 1열 세로로 (폭이 좁으므로) */
+  .oss-grid .contrib-grid{
+    grid-template-columns:1fr;
+    gap:14px;
   }
   .contrib-card{
     text-decoration:none;
@@ -440,6 +453,7 @@
     .hero-minimal{padding:48px 24px 32px;}
     .posts-grid{grid-template-columns:1fr;}
     .contrib-grid{grid-template-columns:1fr;}
+    .oss-grid{grid-template-columns:1fr;}
     .filter-pills{gap:5px;}
   }
 
@@ -477,24 +491,27 @@
   </div>
 </section>
 
-<!-- 오픈소스 기여한 글 -->
-<section class="contrib-section" id="contribSection" style="display:none" aria-label="오픈소스 기여한 글">
-  <div class="pr-head">
-    <span class="pr-title">기여한 글</span>
-    <span class="pr-summary" id="contribCount"></span>
-  </div>
-  <div class="contrib-grid" id="contribGrid"></div>
-</section>
+<!-- 오픈소스: 브랜치(좌) + 기여한 글(우) -->
+<div class="oss-grid">
+  <!-- PR 브랜치 그래프 (왼쪽) -->
+  <section class="pr-section" id="prSection" style="display:none" aria-label="오픈소스 기여 PR 상태">
+    <div class="pr-head">
+      <span class="pr-title">Open Source PRs</span>
+      <span class="pr-summary" id="prSummary"></span>
+    </div>
+    <p class="pr-updated" id="prUpdated"></p>
+    <div class="pr-list" id="prList"></div>
+  </section>
 
-<!-- GitHub PR 상태 -->
-<section class="pr-section" id="prSection" style="display:none" aria-label="오픈소스 기여 PR 상태">
-  <div class="pr-head">
-    <span class="pr-title">Open Source PRs</span>
-    <span class="pr-summary" id="prSummary"></span>
-  </div>
-  <p class="pr-updated" id="prUpdated"></p>
-  <div class="pr-list" id="prList"></div>
-</section>
+  <!-- 기여한 글 (오른쪽) -->
+  <section class="contrib-section" id="contribSection" style="display:none" aria-label="오픈소스 기여한 글">
+    <div class="pr-head">
+      <span class="pr-title">기여한 글</span>
+      <span class="pr-summary" id="contribCount"></span>
+    </div>
+    <div class="contrib-grid" id="contribGrid"></div>
+  </section>
+</div>
 
 <script>
   function escapeHtml(value) {
