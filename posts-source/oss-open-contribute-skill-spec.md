@@ -2,7 +2,7 @@
 slug: oss-open-contribute-skill-spec
 title: 내 에이전트 스킬 저장소가 패키징 안 되는 이유 — SKILL.md 스펙 컴플라이언스
 excerpt: Agent Skills 저장소 open_contribute의 SKILL.md frontmatter에 스펙에 없는 version 키가 있어 공식 packager가 거부했던 문제를 찾아 스펙에 맞게 고치고 CI를 강화한(머지됨) 기여 기록.
-tags: [oss, agents, skills, spec, github-actions]
+tags: [oss, agents]
 status: published
 source_ref: https://github.com/chjnett/open_contribute/pull/1
 ---

@@ -2,7 +2,7 @@
 slug: oss-directus-graphql-m2a
 title: Directus GraphQL의 M2A 유니언 프래그먼트가 null로 풀리는 버그
 excerpt: Directus가 GraphQL의 named fragment를 inline fragment로 감쌀 때 M2A 유니언 타입 조건을 잘못 다뤄 필드가 null로 풀리는 문제를 수정한 기여 기록.
-tags: [oss, graphql, directus, typescript]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/directus/directus/pull/28092
 ---

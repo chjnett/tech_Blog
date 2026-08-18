@@ -2,7 +2,7 @@
 slug: oss-smolagents-callback-serialization
 title: smolagents MultiStepAgent의 콜백 직렬화 지원
 excerpt: HuggingFace smolagents의 에이전트 save()/from_folder()가 step_callbacks와 final_answer_checks 같은 콜러블을 저장·복원하지 못하던 문제를, 안전한 path 기반 직렬화로 해결한 기여 기록.
-tags: [oss, huggingface, llm, agents, python]
+tags: [oss, ai-llm, agents]
 status: published
 source_ref: https://github.com/huggingface/smolagents/pull/2146
 ---

@@ -2,7 +2,7 @@
 slug: oss-urfave-cli-mutex-flag
 title: urfave/cli 상호배타 플래그 에러가 alias 이름을 못 알려주던 문제
 excerpt: Go CLI 라이브러리 urfave/cli의 상호배타 플래그 체크가 primary 이름 대신 사용자가 실제 입력한 alias를 에러에 담지 못하던 문제를, setFlags를 map[Flag]string으로 바꿔 해결한 기여 기록.
-tags: [oss, golang, cli, urfave]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/urfave/cli/pull/2409
 ---

@@ -2,7 +2,7 @@
 slug: oss-grafana-shortlink-orgid
 title: Grafana short URL이 org ID를 네임스페이스로 쓰던 버그
 excerpt: Grafana의 카피 short URL이 Kubernetes 리소스의 namespace(default/org-<id>/stacks-<id>)를 orgId 쿼리 파라미터로 잘못 넣어 링크가 깨지던 문제를 config.bootData.user.orgId로 고친 기여 기록.
-tags: [oss, grafana, typescript, kubernetes]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/grafana/grafana/pull/130906
 ---

@@ -2,7 +2,7 @@
 slug: mla-article
 title: GQA의 한계, 그리고 MLA로 넘어가기 — 논문 스터디와 직접 구현
 excerpt: GQA가 풀지 못한 표현력 한계를 Multi-head Latent Attention(MLA)이 어떻게 해결하는지 TransMLA 논문 스터디와 nanoGPT 스타일 미니 구현체로 직접 검증한 기록.
-tags: [transformer, attention, mla, kv-cache, pytorch, deepseek]
+tags: [ai-llm, transformer]
 status: published
 source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/mla-article
 ---

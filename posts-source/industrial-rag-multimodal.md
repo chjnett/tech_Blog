@@ -2,7 +2,7 @@
 slug: industrial-rag-multimodal
 title: "산업 현장 데이터는 텍스트만이 아니다 — 이미지+문서 하이브리드 RAG 구현기"
 excerpt: "GQA/MLA 이후의 다음 단계. 결함 이미지와 기술 문서를 CLIP 하나로 잇겠다는 계획은 절반만 성공했다. 이미지끼리는 Recall@1 95%로 잘 묶였지만, 이미지-문서 유사도는 0.236에 표준편차 0.011 — 순위가 아예 안 갈렸다. 안 된 절반을 지우지 않고 남긴 기록."
-tags: [rag, multimodal, clip, industrial]
+tags: [ai-llm, rag]
 status: published
 source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/industrial-rag-multimodal
 ---

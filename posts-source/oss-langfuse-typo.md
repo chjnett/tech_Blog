@@ -2,7 +2,7 @@
 slug: oss-langfuse-typo
 title: 오타 하나의 가치 — "a a"를 "a"로 고친 langfuse 기여
 excerpt: 오픈소스 기여가 항상 커야 하는 건 아니다. langfuse entitlements README의 중복 단어 오타("a a" → "a")를 고친, 작지만 유효한 문서 기여 기록.
-tags: [oss, langfuse, docs, typescript]
+tags: [oss]
 status: published
 source_ref: https://github.com/langfuse/langfuse/pull/12400
 ---

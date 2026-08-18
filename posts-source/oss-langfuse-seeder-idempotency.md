@@ -2,7 +2,7 @@
 slug: oss-langfuse-seeder-idempotency
 title: langfuse 시더를 멱등하게 — 다시 돌려도 꺼지지 않게
 excerpt: langfuse의 seed-postgres 스크립트가 두 번째 실행부터 Prisma upsert 문법 오류와 중복으로 터지던 문제를, upsert 전환 + skipDuplicates + 중복 체크로 멱등하게 고친 기여 기록.
-tags: [oss, langfuse, prisma, postgres, llm]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/langfuse/langfuse/pull/12459
 ---

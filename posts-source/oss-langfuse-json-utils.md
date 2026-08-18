@@ -2,7 +2,7 @@
 slug: oss-langfuse-json-utils
 title: 지우면 코드가 술술 — langfuse JSON 유틸 추출 리팩터
 excerpt: CodeJsonViewer와 PrettyJsonView에 중복돼 있던 stringifyJsonNode를 공용 util로 추출해 유지보수 비용을 줄인 langfuse 리팩터 기여 기록.
-tags: [oss, langfuse, typescript, refactoring]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/langfuse/langfuse/pull/12402
 ---

@@ -2,7 +2,7 @@
 slug: worker-refactor-sanitize-hardening
 title: 개인 블로그 Worker 코드 개선기 — SELECT * 제거부터 XSS 하드닝까지
 excerpt: D1 쿼리 컬럼 최적화, 6개 파일에 흩어진 헬퍼 통합, 콘텐츠 sanitize, RSS 이스케이프 누락, 타입/Web Crypto 개선까지. 직접 운영하는 Cloudflare Workers 블로그의 코드를 정리한 기록.
-tags: [cloudflare, workers, refactoring, security, d1, meta]
+tags: [cloudflare, security]
 status: published
 ---
 

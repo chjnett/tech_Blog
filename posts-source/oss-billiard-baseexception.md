@@ -2,7 +2,7 @@
 slug: oss-billiard-baseexception
 title: billiard pool worker가 SystemExit을 삼키던 버그 — BaseException 전파
 excerpt: Celery의 저수준 풀 구현인 billiard가 worker에서 발생한 BaseException(SystemExit/KeyboardInterrupt)을 잡지 못해 WorkerLostError를 던지던 문제를 except BaseException으로 고친 기여 기록.
-tags: [oss, python, celery, concurrency]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/celery/billiard/pull/452
 ---

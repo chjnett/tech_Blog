@@ -2,7 +2,7 @@
 slug: oss-psycopg-binary-copy-datalen
 title: psycopg에 binary COPY 길이 검증 기여 — 파이썬 슬라이싱이 조용히 버릇될 때
 excerpt: PostgreSQL 드라이버 psycopg의 `_parse_row_binary`가 필드 길이를 초과하면 조용히 잘리던 버그를 찾아 DataError로 바꾸고, C 구현과 동작을 일치시킨 기여 기록.
-tags: [oss, postgres, psycopg, python, database]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/psycopg/psycopg/pull/1383
 ---

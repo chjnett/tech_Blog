@@ -2,7 +2,7 @@
 slug: oss-langchain-langgraph-docs
 title: deprecated initialize_agent를 LangGraph로 교체하는 문서 기여 (langchain)
 excerpt: langchain 문서 곳곳에 남은 deprecated API initialize_agent를, 권장 패턴인 create_react_agent 등 LangGraph 코드로 교체해 최신 권장 사항을 반영한 문서 기여 기록.
-tags: [oss, langchain, llm, langgraph, docs]
+tags: [oss, ai-llm]
 status: published
 source_ref: https://github.com/langchain-ai/langchain/pull/39608
 ---

@@ -2,7 +2,7 @@
 slug: attention-is-all-you-need-kv-cache-gqa
 title: "Attention Is All You Need"를 읽다가 KV 캐시 병목에 걸려 넘어진 이야기
 excerpt: Attention Is All You Need 논문을 다시 읽다가 발견한 KV 캐시 병목 문제, 그리고 이를 해결하는 GQA(Grouped-Query Attention)를 미니 Transformer로 직접 구현해 검증한 기록.
-tags: [transformer, attention, gqa, kv-cache, pytorch]
+tags: [ai-llm, transformer]
 status: published
 source_ref: https://github.com/chjnett/tech_Blog/tree/main/posts-assets/attention-is-all-you-need-kv-cache-gqa
 ---

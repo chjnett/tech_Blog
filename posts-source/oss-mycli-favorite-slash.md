@@ -2,7 +2,7 @@
 slug: oss-mycli-favorite-slash
 title: 문서의 `/fs`가 실제 명령(`\fs`)과 다른 버그 — mycli
 excerpt: MySQL 클라이언트 mycli의 즐겨찾기 명령이 백슬래시(\fs)로 등록돼 있는데 README·help는 슬래시(/fs)로 보여, 문서를 따라가면 SQL 문법 오류가 났던 것을 고친 기여 기록.
-tags: [oss, mycli, docs, python, mysql]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/dbcli/mycli/pull/2142
 ---

@@ -2,7 +2,7 @@
 slug: oss-sqlfluff-pin-piptools
 title: SQLFluff Dockerfile에 pip-tools 버전 고정 — 되던 빌드가 잠들었다가 깨진 이유
 excerpt: SQLFluff의 DockerHub 발행이 unpinned pip-tools가 Python 3.14에서 삭제된 pip 내부를 import하다 깨진 버그를 찾아, 재발 방지로 pip-tools>=7.6.1을 고정한 기여 기록.
-tags: [oss, sqlfluff, python, docker, pip]
+tags: [oss, backend]
 status: published
 source_ref: https://github.com/sqlfluff/sqlfluff/pull/8350
 ---
