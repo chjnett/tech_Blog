@@ -3,7 +3,7 @@ slug: redis-serverless-the-role-of-key-value-store
 title: Redis를 서버리스 블로그에 쓰려다 알게 된 것 — KV Store의 역할과 D1/KV/Redis 경계
 excerpt: Cloudflare Workers 블로그에 Redis를 도입하려다, "왜 여기선 Redis가 정답이 아닐 수 있는지"를 통해 Redis(데이터 구조 서버)와 서버리스 KV/D1(바인딩)이 갈리는 지점을 정리한 학습 기록.
 tags: [redis, caching, key-value, cloudflare, database, serverless]
-status: draft
+status: published
 ---
 
 서버리스 블로그(Cloudflare Workers + D1)를 운영하면서 "조회수는 Redis로"라는 말을 흔히 듣는다. 그런데 막상 Workers에서 돌아가는 서버리스 환경은 **자체 Redis 프로세스를 띄울 수 없어서**, Redis의 사촌인 KV 스토어나 D1을 쓰게 된다. 왜 그런가가 이 글의 출발점이다.
