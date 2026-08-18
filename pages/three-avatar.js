@@ -102,11 +102,11 @@ screen.position.set(0, 1.75, -1.32);
 scene.add(screen);
 drawTerminal();
 
-// ── 책상 + 키보드 ──
+// ── 책상 + 키보드 (아바타 손 위치에 가깝게) ──
 scene.add(box(2.2, 0.09, 0.9, LINE, 0, 1.0, 0));
 scene.add(box(0.09, 0.95, 0.7, INK_SOFT, -1.0, 0.52, 0));
 scene.add(box(0.09, 0.95, 0.7, INK_SOFT, 1.0, 0.52, 0));
-scene.add(box(0.5, 0.03, 0.18, INK_SOFT, 0, 1.07, 0.32));
+scene.add(box(0.5, 0.03, 0.18, INK_SOFT, 0, 1.05, 0.14));
 
 // ── 아바타 로드 ──
 const gltfLoader = new GLTFLoader();
@@ -193,8 +193,10 @@ const clock = new THREE.Clock();
 let frame = 0;
 function tick() {
   frame++;
-  const t = clock.getElapsedTime();
+  // getDelta()를 먼저 호출해야 애니메이션이 진행된다
+  // (getElapsedTime()은 내부적으로 getDelta()를 소모하므로 순서 주의)
   const dt = clock.getDelta();
+  const t = clock.elapsedTime;
 
   // Idle → Typing 전환 (1.8초 후)
   if (!reduced && mode === 'idle' && performance.now() - animStart > 1800) {
