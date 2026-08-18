@@ -10,7 +10,7 @@ source_ref: https://github.com/langfuse/langfuse/pull/12402
 중복 코드는 자주 "지금은 괜찮지만"으로 미뤄진다. 코드베이스에 `TODO: deduplicate` 주석이 두 번 보이면, 이제 그때는 리팩터 타이밍이다. langfuse 웹 쪽의 JSON 직렬화 로직을 공용 util로 묶었다.
 
 ```figure
-{"type":"compare","caption":"중복 → 공용 util","nodes":[{"id":"A","label":"CodeJsonViewer","note":"고유 stringify 로직"},{"id":"B","label":"PrettyJsonView","note":"동일 로직 중복"},{"id":"U","label":"jsonUtils.ts","note":"stringifyJsonNode 공용","emphasis":true}],"edges":[{"from":"A","to":"U","label":"추출"},{"from":"B","to":"U","label":"추출"}]}
+{"type":"flow","caption":"중복 로직 → 공용 util","nodes":[{"id":"A","label":"CodeJsonViewer","note":"고유 stringify 로직"},{"id":"B","label":"PrettyJsonView","note":"동일 로직 중복"},{"id":"U","label":"jsonUtils.ts","note":"stringifyJsonNode 공용","emphasis":true}],"edges":[{"from":"A","to":"U","label":"추출"},{"from":"B","to":"U","label":"추출"}]}
 ```
 
 ## 무슨 리팩터였나

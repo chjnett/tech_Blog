@@ -90,7 +90,7 @@ const res = await fetch(url, { headers: { Authorization: `Bearer ${UPSTASH_TOKEN
 - 만약 조회수를 만들면, 정확성보다 "간단함 + 원자성"이 필요한 카운터에 한해 Upstash로. 학습·기록 목적이면 그것만으로 충분한 가치가 있다.
 
 ```figure
-{"type":"compare","caption":"KV / D1 / Redis — 어디에 쓰는가","nodes":[{"id":"kv","label":"KV","note":"읽기 빠른 부트스트랩·빌드 캐시·플래그"},{"id":"d1","label":"D1","note":"쿼리 필요한 정규화 데이터"},{"id":"redis","label":"Redis","note":"원자 카운터 · TTL · 랭킹"}],"edges":[{"from":"kv","to":"redis"},{"from":"d1","to":"redis"}]}
+{"type":"flow","caption":"KV / D1 / Redis — 용도에 따른 저장소 선택","nodes":[{"id":"kv","label":"KV","note":"읽기 빠른 부트스트랩·플래그"},{"id":"d1","label":"D1","note":"쿼리 필요한 정규화 데이터"},{"id":"redis","label":"Redis","note":"원자 카운터 · TTL · 랭킹","emphasis":true}],"edges":[{"from":"kv","to":"redis"},{"from":"d1","to":"redis"}]}
 ```
 
 ## 마무리

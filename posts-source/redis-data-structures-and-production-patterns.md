@@ -118,7 +118,7 @@ OK        # 성공 = 락 획득
 그리고 "업무에 정말 필요한가"를 묻는 판단(원자성/TTL/공유 상태 프레임워크)은 지금까지 읽은 글들에서 반복되는 주제다.
 
 ```figure
-{"type":"compare","caption":"자료구조 선택 = 트레이드오프","nodes":[{"id":"set","label":"Set","note":"정확한 유니크, 메모리 큼"},{"id":"hll","label":"HyperLogLog","note":"대략 유니크, 메모리 적음"},{"id":"zset","label":"ZSet","note":"정렬+순위, 메모리 중간"}],"edges":[{"from":"set","to":"hll"},{"from":"hll","to":"zset"}]}
+{"type":"compare","caption":"자료구조 선택 = 트레이드오프","nodes":[{"id":"set","label":"Set","note":"정확한 유니크, 메모리 큼"},{"id":"hll","label":"HyperLogLog","note":"대략 유니크, 메모리 적음"},{"id":"zset","label":"ZSet","note":"정렬+순위, 메모리 중간"}],"edges":[]}
 ```
 
 ## 마무리
