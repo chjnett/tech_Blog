@@ -18,8 +18,8 @@ const WHITE = 0xffffff;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
-camera.position.set(0, 1.2, 2.9);
-camera.lookAt(0, 1.05, -0.2);
+camera.position.set(0, 1.05, 2.9);
+camera.lookAt(0, 0.9, -0.2);
 
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 renderer.setClearColor(0x000000, 0);
@@ -103,10 +103,10 @@ scene.add(screen);
 drawTerminal();
 
 // ── 책상 + 키보드 (아바타 손 위치에 가깝게) ──
-scene.add(box(2.2, 0.09, 0.9, LINE, 0, 1.0, 0));
-scene.add(box(0.09, 0.95, 0.7, INK_SOFT, -1.0, 0.52, 0));
-scene.add(box(0.09, 0.95, 0.7, INK_SOFT, 1.0, 0.52, 0));
-scene.add(box(0.5, 0.03, 0.18, INK_SOFT, 0, 1.05, 0.14));
+scene.add(box(2.2, 0.09, 0.9, LINE, 0, 0.85, 0.3));
+scene.add(box(0.09, 0.8, 0.7, INK_SOFT, -1.0, 0.45, 0.3));
+scene.add(box(0.09, 0.8, 0.7, INK_SOFT, 1.0, 0.45, 0.3));
+scene.add(box(0.5, 0.03, 0.18, INK_SOFT, 0, 0.9, 0.45));
 
 // ── 아바타 로드 ──
 const gltfLoader = new GLTFLoader();
@@ -139,7 +139,7 @@ avatar.traverse((o) => {
     o.material = toonMat(c !== undefined ? c : BG_SOFT);
   }
 });
-avatar.position.set(0, 0, -0.25);
+avatar.position.set(0, -0.15, -0.25);
 scene.add(avatar);
 
 // ── 애니메이션 ──
