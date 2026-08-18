@@ -135,4 +135,4 @@ Semantic Cache는 "같은 의미의 다른 질문"이라는 **LLM 서빙의 기�
 
 다음 글에서 이어질 자연스러운 주제는 **Transformer의 KV Cache vs 데이터베이스 KV Store** — 이름은 같지만 구조가 완전히 다른 두 "캐시"를 대조하는 CS 기반 포스팅이 될 수 있다. [GQA/MLA 글](https://tech-blog-worker.cheonhyeonjun583.workers.dev/posts/mla-article)과 짝을 이룬다.
 
-> 참고 자료: [Redis Vector Search getting-started](https://redis.io/tutorials/howtos/solutions/vector/getting-started-vector.md) · [Redis 8 Vector Sets](https://redis.io/blog/redis-8-brings-vector-sets-and-is-now-in-preview-on-redis-cloud-essentials.md) · [Redis Stack Vectors](https://redis-stack.io/docs/interact/search-and-query/advanced-concepts/vectors/)
+> 참고 자료: [Redis Vector Search getting-started](https://redis.io/tutorials/howtos/solutions/vector/getting-started-vector.md) · [Vector Sets 가이드](https://redis.io/tutorials/howtos/vector-sets-basics.md) · [Redis Vector Sets 발표](https://redis.io/blog/announcing-vector-sets-a-new-redis-data-type-for-vector-similarity.md)
