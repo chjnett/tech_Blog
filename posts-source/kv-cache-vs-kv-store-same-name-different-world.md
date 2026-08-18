@@ -3,7 +3,7 @@ slug: kv-cache-vs-kv-store-same-name-different-world
 title: "Transformer의 KV Cache vs 데이터베이스의 KV Store: 이름만 같고 뭐가 다를까"
 excerpt: 어텐션 추론의 VRAM을 점유하는 KV Cache와 백엔드 분산 KV Store(Redis 등)가 "Key-Value"라는 이름만 같고 구조·목적·수명이 어떻게 다른지, 기존 GQA/MLA 글과 이어지는 CS+AI 융합 대조 분석.
 tags: [ai-llm, transformer, redis]
-status: draft
+status: published
 ---
 
 딥러닝을 하다 백엔드로 넘어오면, 어디선가 TV 본 "KV"라는 단어를 두 번째 만난다. 어텐션에서는 **KV Cache**(Key-Value Cache)가 GPU VRAM을 잡아먹어 메모리가 터지고, 백엔드에서는 **KV Store**(Redis 같은 Key-Value 스토어)가 실제 서비스를 가볍게 만든다. 이름이 같아서 헷갈리지만, 사실 **둘은 "Key-Value"라는 낱말 외에 거의 공유하는 게 없다.**

@@ -3,7 +3,7 @@ slug: redis-semantic-cache-llm-cost
 title: LLM 서빙 비용을 줄이는 Semantic Cache — Redis Vector Search로 유사 질문 응답 캐싱하기
 excerpt: 같은 의미를 가진 다른 말로 질문해도 LLM을 새로 호출하는 낭비를, 질문을 임베딩 벡터로 바꿔 Redis HNSW 인덱스로 유사 캐시를 찾는 Semantic Cache로 줄이는 구조. Redis 8의 Vector Set과 기존 FT.CREATE HNSW를 모두 정리한다.
 tags: [ai-llm, redis]
-status: draft
+status: published
 ---
 
 LLM을 프러덕션에 올리고 한 달쯤 지나면 어김없이 마주치는 값비싼 사실이 있다. **사용자들은 비슷한 말을 계속 묻는다.** "결제가 안 돼요", "결제 오류가 났는데요", "지불이 실패했어요" — 의미는 같지만 텍스트는 다른 질문들이 매번 LLM을 새로 호출하고, 그때마다 토큰 비용이 쌓인다. 이 글은 이 낭비를 **Semantic Cache**로 줄이는 방법이다.
