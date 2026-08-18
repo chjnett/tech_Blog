@@ -18,8 +18,8 @@ const WHITE = 0xffffff;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
-camera.position.set(0, 1.05, 2.9);
-camera.lookAt(0, 0.85, 0.1);
+camera.position.set(0, 1.35, 3.0);
+camera.lookAt(0, 0.95, -0.1);
 
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 renderer.setClearColor(0x000000, 0);
@@ -139,7 +139,7 @@ avatar.traverse((o) => {
     o.material = toonMat(c !== undefined ? c : BG_SOFT);
   }
 });
-avatar.position.set(0, 0.05, 0.12);   // 상체를 위로 올려 테이블과 겹침 완화
+avatar.position.set(0, 0.15, -0.5);   // 책상 뒤로 + 위로 → 상체/손이 테이블 위에 자연스럽게
 scene.add(avatar);
 
 // ── 애니메이션 ──
