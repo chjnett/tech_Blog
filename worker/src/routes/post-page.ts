@@ -1,8 +1,9 @@
 import { getPublishedPostBySlug } from '../db';
 import { renderMarkdown } from '../render';
 import { escapeHtml, parseTags } from '../utils';
+import { incrementViews } from '../views';
 
-export async function handlePostPage(db: D1Database, slug: string): Promise<Response> {
+export async function handlePostPage(db: D1Database, slug: string, kv: KVNamespace): Promise<Response> {
   const row = await getPublishedPostBySlug(db, slug);
   if (!row) {
     return new Response('Not Found', {
@@ -10,6 +11,8 @@ export async function handlePostPage(db: D1Database, slug: string): Promise<Resp
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
   }
+  // 페이지 조회 시 조회수 +1 (Cloudflare KV — 원자 카운터가 없어서)
+  const views = await incrementViews(kv, slug).catch(() => 0);
 
   const tags = parseTags(row.tags);
   const tagsHtml = tags.map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join('');
@@ -54,6 +57,7 @@ export async function handlePostPage(db: D1Database, slug: string): Promise<Resp
   <div class="article-meta">
     ${tagsHtml}
     <span>${escapeHtml(dateLabel)}</span>
+    <span class="views-label">👁 ${views}</span>
     ${codeLinkHtml}
   </div>
   <h1>${escapeHtml(row.title)}</h1>
