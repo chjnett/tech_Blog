@@ -85,8 +85,8 @@
   }
   .hero-3d{
     display:block;
-    width:300px;
-    height:240px;
+    width:320px;
+    height:300px;
     margin-top:10px;
     outline:none;
   }
@@ -503,7 +503,7 @@
   @media (max-width:760px){
     .hero{grid-template-columns:1fr; padding-top:40px;}
     .hero-minimal{padding:48px 24px 32px;}
-    .hero-3d{width:250px; height:200px;}
+    .hero-3d{width:260px; height:250px;}
     .posts-grid{grid-template-columns:1fr;}
     .contrib-grid{grid-template-columns:1fr;}
     .oss-heads{grid-template-columns:1fr;}
@@ -814,9 +814,16 @@
   loadPrs();
 </script>
 
-<!-- hero 3D 캐릭터 (three.js, 모노크롬) -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="/three-hero.js"></script>
+<!-- hero 3D 아바타 (three.js ESM, 모노크롬) -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="/three-avatar.js"></script>
 
 </body>
 </html>
