@@ -139,7 +139,7 @@ avatar.traverse((o) => {
     o.material = toonMat(c !== undefined ? c : BG_SOFT);
   }
 });
-avatar.position.set(0, -0.05, 0);   // 손이 책상 상판(y 0.85, z 0.3) 위에 닿도록
+avatar.position.set(0, 0.05, 0.12);   // 상체를 위로 올려 테이블과 겹침 완화
 scene.add(avatar);
 
 // ── 애니메이션 ──
