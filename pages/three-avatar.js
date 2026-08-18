@@ -69,16 +69,28 @@ const TERM_LINES = [
 ];
 let termLine = 0;
 function drawTerminal() {
+  // 코드 블록 스타일: #10131A 배경 + 상단 바(라벨) + 모노 텍스트
   tctx.fillStyle = '#10131A';
   tctx.fillRect(0, 0, termCanvas.width, termCanvas.height);
+  // 상단 바 (코드 블록 .code-bar처럼)
+  tctx.fillStyle = 'rgba(255,255,255,0.04)';
+  tctx.fillRect(0, 0, termCanvas.width, 22);
+  tctx.fillStyle = 'rgba(255,255,255,0.08)';
+  tctx.fillRect(0, 22, termCanvas.width, 1);
+  tctx.font = '11px "JetBrains Mono", ui-monospace, monospace';
+  tctx.fillStyle = 'rgba(246,247,249,0.5)';
+  tctx.textAlign = 'right';
+  tctx.fillText('python', termCanvas.width - 14, 15);
+  tctx.textAlign = 'left';
+  // 코드 줄
   tctx.font = '13px "JetBrains Mono", ui-monospace, monospace';
   TERM_LINES.slice(0, termLine + 1).forEach((line, i) => {
     tctx.fillStyle = line.startsWith('$') ? '#F6F7F9' : '#7A8290';
-    tctx.fillText(line, 14, 22 + i * 17);
+    tctx.fillText(line, 14, 42 + i * 17);
   });
   if (Math.floor(Date.now() / 700) % 2 === 0) {
     tctx.fillStyle = '#F6F7F9';
-    tctx.fillRect(14 + tctx.measureText('$ python train.py').width + 6, 12, 8, 16);
+    tctx.fillRect(14 + tctx.measureText('$ python train.py').width + 6, 32, 8, 16);
   }
   if (termCanvas.__tex) termCanvas.__tex.needsUpdate = true;
 }
@@ -107,7 +119,7 @@ const [gltf, idleObj, typingObj] = await Promise.all([
 ]);
 
 const avatar = gltf.scene;
-// 모노크롬 머티리얼로 교체 (텍스처 대신 팔레트 단색)
+// 디자인 시스템 캐릭터: 실사 재질 제거 → 톤(셀) 셰이딩 + 블로그 팔레트 단색
 const MAT_MAP = {
   Wolf3D_Skin: BG_SOFT,
   Wolf3D_Teeth: WHITE,
@@ -118,14 +130,13 @@ const MAT_MAP = {
   Wolf3D_Outfit_Footwear: INK,
   Wolf3D_Eye: INK,
 };
+function toonMat(color) {
+  return new THREE.MeshToonMaterial({ color, gradientMap: null });
+}
 avatar.traverse((o) => {
   if (o.isMesh) {
     const c = MAT_MAP[o.material && o.material.name];
-    o.material = new THREE.MeshStandardMaterial({
-      color: c !== undefined ? c : BG_SOFT,
-      roughness: 0.75,
-      metalness: 0.0,
-    });
+    o.material = toonMat(c !== undefined ? c : BG_SOFT);
   }
 });
 avatar.position.set(0, 0, -0.25);
@@ -153,13 +164,11 @@ window.addEventListener('pointermove', (e) => {
 });
 window.addEventListener('pointerleave', () => { mouse.x = 0; mouse.y = 0; });
 
-// ── 떠다니는 코드 큐브 ──
+// ── 떠다니는 코드 큐브 (무채색, 2개로 간결하게) ──
 const cubes = [];
 const cubeData = [
-  { p: [-1.35, 1.7, 0.15], s: 0.14, c: INK },
-  { p: [1.35, 1.9, -0.1], s: 0.1, c: INK_SOFT },
-  { p: [-1.15, 2.05, -0.3], s: 0.08, c: LINE },
-  { p: [1.15, 1.5, 0.3], s: 0.12, c: INK },
+  { p: [-1.3, 1.85, 0.1], s: 0.13, c: INK },
+  { p: [1.3, 1.7, 0.2], s: 0.09, c: INK_SOFT },
 ];
 cubeData.forEach((d) => {
   const cube = box(d.s, d.s, d.s, d.c, d.p[0], d.p[1], d.p[2]);

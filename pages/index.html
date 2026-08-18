@@ -83,12 +83,19 @@
     color:var(--ink-soft);
     margin-top:8px;
   }
+  .hero-3d-wrap{
+    margin-top:12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--bg-soft);
+    padding:8px;
+  }
   .hero-3d{
     display:block;
-    width:320px;
-    height:300px;
-    margin-top:10px;
+    width:304px;
+    height:284px;
     outline:none;
+    border-radius:8px;
   }
   .github-icon-link{
     color:var(--ink);
@@ -503,7 +510,7 @@
   @media (max-width:760px){
     .hero{grid-template-columns:1fr; padding-top:40px;}
     .hero-minimal{padding:48px 24px 32px;}
-    .hero-3d{width:260px; height:250px;}
+    .hero-3d{width:244px; height:230px;}
     .posts-grid{grid-template-columns:1fr;}
     .contrib-grid{grid-template-columns:1fr;}
     .oss-heads{grid-template-columns:1fr;}
@@ -536,7 +543,9 @@
   </a>
   <h1 class="hero-name">Hyeonjun Cheon</h1>
   <p class="hero-tagline">AI Engineer · 오픈소스 기여자 · 기술 블로거</p>
-  <canvas id="hero3d" class="hero-3d" aria-hidden="true"></canvas>
+  <div class="hero-3d-wrap">
+    <canvas id="hero3d" class="hero-3d" aria-hidden="true"></canvas>
+  </div>
 </section>
 
 <!-- 카테고리 필터 -->
