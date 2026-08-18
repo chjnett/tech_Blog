@@ -11,7 +11,7 @@ status: published
 Redis의 진짜 힘은 "어떤 자료구조를 어떤 명령으로 쓰느냐"가 아니라, **그 자료구조가 내부에서 어떻게 저장되는지**를 알고 선택하는 데서 나온다.
 
 ```figure
-{"type":"stack","caption":"Redis는 하나의 키에 8가지 타입을 저장한다","nodes":[{"id":"s","label":"String","note":"동적 버퍼(SDS)","emphasis":true},{"id":"l","label":"List","note":"listpack·quicklist"},{"id":"h","label":"Hash","note":"listpack·hashtable"},{"id":"z","label":"ZSet","note":"skip list + hash"},{"id":"e","label":"Stream","note":"radix trie"}],"edges":[]}
+{"type":"compare","caption":"Redis는 하나의 키에 5가지 타입을 저장한다","nodes":[{"id":"s","label":"String","note":"동적 버퍼(SDS)","emphasis":true},{"id":"l","label":"List","note":"listpack·quicklist"},{"id":"h","label":"Hash","note":"listpack·hashtable"},{"id":"z","label":"ZSet","note":"skip list + hash"},{"id":"e","label":"Stream","note":"radix trie"}],"edges":[]}
 ```
 
 ## 1. 핵심 5가지 — 그리고 내부 구현
