@@ -19,7 +19,7 @@ const WHITE = 0xffffff;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
 camera.position.set(0, 1.05, 2.9);
-camera.lookAt(0, 0.9, -0.2);
+camera.lookAt(0, 0.85, 0.1);
 
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 renderer.setClearColor(0x000000, 0);
@@ -139,7 +139,7 @@ avatar.traverse((o) => {
     o.material = toonMat(c !== undefined ? c : BG_SOFT);
   }
 });
-avatar.position.set(0, -0.15, -0.25);
+avatar.position.set(0, -0.05, 0);   // 손이 책상 상판(y 0.85, z 0.3) 위에 닿도록
 scene.add(avatar);
 
 // ── 애니메이션 ──
