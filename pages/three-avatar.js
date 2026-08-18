@@ -18,8 +18,8 @@ const WHITE = 0xffffff;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
-camera.position.set(0, 1.35, 3.0);
-camera.lookAt(0, 0.95, -0.1);
+camera.position.set(0, 1.15, 2.6);
+camera.lookAt(0, 0.9, -0.45);
 
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 renderer.setClearColor(0x000000, 0);
@@ -102,11 +102,15 @@ screen.position.set(0, 1.75, -1.32);
 scene.add(screen);
 drawTerminal();
 
-// ── 책상 + 키보드 (아바타 손 위치에 가깝게) ──
-scene.add(box(2.2, 0.09, 0.9, LINE, 0, 0.85, 0.3));
-scene.add(box(0.09, 0.8, 0.7, INK_SOFT, -1.0, 0.45, 0.3));
-scene.add(box(0.09, 0.8, 0.7, INK_SOFT, 1.0, 0.45, 0.3));
-scene.add(box(0.5, 0.03, 0.18, INK_SOFT, 0, 0.9, 0.45));
+// ── 책상 + 키보드 (아바타 손 아래로 배치 — 허공 타이핑 방지) ──
+// 손 세계좌표 z≈-0.4(아바타 z=-0.5 + 손 로컬 0.1), y≈1.05
+// → 키보드를 손 바로 아래(z -0.45, y 0.9)에 놓아 손이 키 위에서 치게 한다.
+scene.add(box(2.2, 0.09, 0.9, LINE, 0, 0.85, -0.35));
+scene.add(box(0.09, 0.8, 0.7, INK_SOFT, -1.0, 0.45, -0.35));
+scene.add(box(0.09, 0.8, 0.7, INK_SOFT, 1.0, 0.45, -0.35));
+// 키보드 상판(z -0.45, y 0.9)은 손(y≈1.05) 바로 아래
+const keyboardTop = box(0.55, 0.03, 0.2, INK_SOFT, 0, 0.9, -0.45);
+scene.add(keyboardTop);
 
 // ── 아바타 로드 ──
 const gltfLoader = new GLTFLoader();
