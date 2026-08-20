@@ -22,7 +22,10 @@ export function sanitizeRenderedHtml(html: string): string {
       '*': ['class', 'title', 'aria-label', 'aria-hidden', 'aria-pressed', 'role', 'tabindex', 'hidden'],
       a: ['href', 'name', 'target', 'rel'],
       img: ['src', 'srcset', 'alt', 'width', 'height', 'loading'],
-      span: ['data-tooltip'],
+      // span/code: Shiki 하이라이팅 토큰의 인라인 color를 허용.
+      // 모노크롬 원칙상 코드 블록 안(span/code)의 색만 예외로 받는다.
+      span: ['data-tooltip', 'style'],
+      code: ['style'],
       button: ['type'],
       th: ['align'],
       td: ['align'],
