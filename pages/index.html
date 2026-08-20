@@ -83,6 +83,8 @@
     color:var(--ink-soft);
     margin-top:8px;
   }
+  /* 모바일 전용 '코딩 중' 배지 — 데스크톱에선 숨김 */
+  .hero-badge-mobile{display:none;}
   .hero-3d-wrap{
     margin-top:12px;
     border:1px solid var(--line);
@@ -520,6 +522,31 @@
     }
     .oss-row{grid-template-columns:1fr;}
     .filter-pills{gap:5px;}
+    /* 모바일 터치 타겟: 최소 40px (Apple 권장) */
+    .pill{
+      min-height:40px;
+      display:inline-flex;
+      align-items:center;
+    }
+    .github-icon-link{min-height:44px; min-width:44px; display:inline-flex; align-items:center; justify-content:center;}
+    .post-card .post-excerpt{-webkit-line-clamp:3;}
+    /* 3D 아바타는 데스크톱 전용 — 모바일 성능/배터리 절약 위해 숨김 */
+    .hero-3d-wrap, .hero-3d{
+      display:none;
+    }
+    /* 대신 모노크롬 '코딩 중' 배지로 대체 */
+    .hero-badge-mobile{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:14px;
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--ink-soft);
+      border:1px solid var(--line);
+      border-radius:99px;
+      padding:6px 12px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -543,6 +570,7 @@
   </a>
   <h1 class="hero-name">Hyeonjun Cheon</h1>
   <p class="hero-tagline">AI Engineer · 오픈소스 기여자 · 기술 블로거</p>
+  <span class="hero-badge-mobile" aria-hidden="true">▸ 코딩 중 · Redis 적용 🛠</span>
   <div class="hero-3d-wrap">
     <canvas id="hero3d" class="hero-3d" aria-hidden="true"></canvas>
   </div>

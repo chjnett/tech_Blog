@@ -23,7 +23,11 @@ camera.lookAt(0, 0.9, -0.45);
 
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 renderer.setClearColor(0x000000, 0);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+// 모바일/저전력 최적화: 작은 화면·터치는 GPU 부하와 배터리를 아낀다.
+// 데스크톱은 pixelRatio 2까지, 모바일은 1로 제한해 렌더 비용을 줄인다.
+const isMobile = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+const MAX_PR = isMobile ? 1 : 2;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_PR));
 renderer.shadowMap.enabled = false;
 
 scene.add(new THREE.AmbientLight(WHITE, 1.5));
