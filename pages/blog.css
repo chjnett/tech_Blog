@@ -228,6 +228,10 @@ a{color:var(--ink);}
   display:flex; align-items:center; gap:6px;
   padding:10px 14px;
   border-bottom:1px solid var(--line);
+  /* 바는 스크롤하지 않게 고정 */
+  position:relative;
+  z-index:1;
+  background:var(--bg-soft);
 }
 .terminal-bar span{width:9px; height:9px; border-radius:50%; background:var(--line);}
 .terminal pre{
@@ -235,6 +239,11 @@ a{color:var(--ink);}
   font-family:var(--mono);
   font-size:13px;
   line-height:1.8;
+  /* 코드 블록처럼 가로 스크롤 (모바일에서 긴 로그가 잘리지 않도록) */
+  overflow-x:auto;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  white-space:pre;
 }
 .terminal .cmd{color:var(--ink); font-weight:700;}
 .terminal .out{color:var(--ink-soft);}
