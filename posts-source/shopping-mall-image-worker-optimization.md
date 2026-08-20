@@ -11,14 +11,14 @@ status: published
 이 글은 그 실제 워커 두 개를 비교하고, 빠진 최적화(리사이즈·WebP·CDN 캐시)를 블로그에서 다룬 [캐시/Redis 시리즈](https://tech-blog-worker.cheonhyeonjun583.workers.dev/posts/redis-data-structures-and-production-patterns) 관점으로 짚는다.
 
 ```figure
-{"type":"compare","caption":"두 쇼핑몰 이미지 Worker — 원리는 같고 구현 프레임워크만 다르다","nodes":[{"id":"m","label":"moment","note":"순수 Workers fetch"},{"id":"a","label":"abeck","note":"Hono + GET 서빙"}],"edges":[]}
+{"type":"compare","caption":"쇼핑몰 이미지 Worker A와 B — 원리는 같고 구현 프레임워크만 다르다","nodes":[{"id":"m","label":"Worker A","note":"순수 Workers fetch"},{"id":"a","label":"Worker B","note":"Hono + GET 서빙"}],"edges":[]}
 ```
 
 ## 1. 실제 코드 — 공통 원리
 
 두 워커는 프레임워크가 달라도 본질은 같다: **다중 파트 폼 → MIME 검증 → R2에 put**.
 
-moment (순수 Workers):
+Worker A (순수 Workers):
 ```ts
 const file = formData.get('file')
 if (!ALLOWED_MIME_TYPES.has(file.type)) return json(..., 415)
@@ -28,7 +28,7 @@ await env.IMAGE_BUCKET.put(key, bytes, {
 })
 ```
 
-abeck (Hono):
+Worker B (Hono):
 ```ts
 const mimeType = file.type.toLowerCase()
 if (!ALLOWED_MIMES.includes(mimeType)) return c.json({...}, 400)
@@ -36,13 +36,13 @@ const key = `images/${crypto.randomUUID()}.${ext}`
 await BUCKET.put(key, arrayBuffer, { httpMetadata: { contentType: mimeType, cacheControl: 'public, max-age=31536000' } })
 ```
 
-눈에 보이는 차이는 **abeck이 `GET /images/:filename` 서빙 라우트를 갖는다**는 것. moment는 업로드만 하고, public URL(게이트웨이/CDN)을 외부에 맡긴다.
+눈에 보이는 차이는 **Worker B가 `GET /images/:filename` 서빙 라우트를 갖는다**는 것. Worker A는 업로드만 하고, public URL(게이트웨이/CDN)을 외부에 맡긴다.
 
 ## 2. 정작 없는 것 — '최적화'라는 이름이 안 하는 일
 
 이름은 `image-optimizer`인데, 실제로는:
 
-| 작업 | moment | abeck | 이것이 왜 중요한가 |
+| 작업 | Worker A | Worker B | 이것이 왜 중요한가 |
 |---|---|---|---|
 | 업로드/서빙 | ✅ | ✅ | 기본 |
 | **리사이즈(다운스케일)** | ❌ | ❌ | 원본 4000px 그대로 전송 → 무거움 |
