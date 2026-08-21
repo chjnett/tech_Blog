@@ -12,6 +12,16 @@ body{
   background:var(--bg);
   color:var(--ink);
   font-family:var(--sans);
+  /* 콘텐츠가 화면 폭을 넘어도 가로로 넘치지 않게 — 모바일 자동 확대 방지 핵심 */
+  overflow-x:hidden;
+}
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+/* 어떤 요소든 화면 폭을 넘지 않게 — 가로 스크롤/자동 확대 방지 */
+img, video, canvas, table, pre, .code-block, .terminal, .figure-block{
+  max-width:100%;
 }
 a{color:var(--ink);}
 
