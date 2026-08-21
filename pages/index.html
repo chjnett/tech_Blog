@@ -185,6 +185,7 @@
     display:grid;
     grid-template-columns:repeat(2,1fr);
     gap:22px;
+    min-width:0;               /* 카드가 내용물 폭으로 화면을 넘치지 않게 */
   }
   .post-card{
     background:var(--bg);
@@ -194,6 +195,8 @@
     display:flex;
     flex-direction:column;
     gap:12px;
+    min-width:0;                 /* 내용물이 카드를 화면 밖으로 늘리지 않게 */
+    overflow-wrap:anywhere;      /* 긴 코드/URL은 행바꿈해 넘침 방지 */
     box-shadow:
       0 1px 2px rgba(16,19,26,0.04),
       0 8px 24px rgba(16,19,26,0.07);
@@ -270,6 +273,8 @@
     border-radius:16px;
     overflow:hidden;
     background:var(--bg);
+    width:100%;          /* 화면/컨테이너 폭을 넘지 않게 */
+    min-width:0;
   }
   /* 헤더 행: 두 열 제목 */
   .oss-heads{
@@ -294,6 +299,7 @@
     gap:22px;                 /* 블로그 카드(.posts-grid)와 같은 gap */
     margin-bottom:22px;
     align-items:stretch;
+    min-width:0;              /* 카드가 내용물 폭으로 화면을 넘치지 않게 */
   }
   .oss-row:last-child{ margin-bottom:0; }
   .oss-row .pr-branch{ height:auto; margin-bottom:0; }
@@ -337,6 +343,9 @@
     background:var(--bg);
     padding:16px 18px 14px 20px;
     margin-bottom:12px;
+    min-width:0;
+    width:100%;
+    overflow-wrap:anywhere;      /* 긴 제목/URL이 화면을 넘치지 않게 */
     overflow:hidden;
     transition:border-color .15s ease, box-shadow .2s ease, transform .2s ease;
   }
@@ -466,6 +475,8 @@
     display:flex;
     flex-direction:column;
     gap:10px;
+    min-width:0;
+    overflow-wrap:anywhere;      /* 긴 코드/URL이 화면을 넘치지 않게 */
     overflow:hidden;
     transition:box-shadow .2s ease, transform .2s ease, border-color .15s ease;
   }
