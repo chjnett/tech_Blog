@@ -60,7 +60,7 @@ status: published
 
 ## 5. 코드 하이라이팅 — Prism → Shiki로 모든 언어에 색
 
-이 블로그는 디자인 원칙상 **색은 코드 블록 안에서만** 쓴다. 그런데 기존 Prism은 5개 언어(**)만** 지원해서, `css`, `markdown`, `dockerfile` 등은 색이 없었다. 그래서 **Shiki**(VS Code 문법)로 바꿨다.
+이 블로그는 디자인 원칙상 **색은 코드 블록 안에서만** 쓴다. 그런데 기존 Prism은 5개 언어만 지원해서, `css`, `markdown`, `dockerfile` 등 코드 블록에는 색이 없었다. 그래서 **Shiki**(VS Code 문법)로 바꿨다.
 
 - **지원 언어 5 → 11개** (python/ts/js/json/bash/css/markdown/html/dockerfile/go/sql)
 - 블로그 4색 팔레트(keyword/string/comment/function) 커스텀 테마

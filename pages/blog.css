@@ -88,6 +88,10 @@ a{color:var(--ink);}
   padding:40px 24px 20px;
   font-size:17px;
   line-height:1.75;
+  /* 한국어 어절 단위로 자연스럽게 줄바꿈 (글자 단위로 끊기는 것 방지) */
+  word-break:keep-all;
+  /* 긴 인라인 코드/URL이 있을 때도 줄바꿈이 끊기지 않게 */
+  overflow-wrap:break-word;
 }
 .article-footer{
   max-width:680px;
