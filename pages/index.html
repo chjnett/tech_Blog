@@ -278,20 +278,21 @@
     border-bottom:1px solid var(--line);
   }
   .oss-head{
-    padding:22px 24px 14px;
+    padding:22px 4px 14px;
     min-width:0;
   }
-  .oss-head + .oss-head{ border-left:1px solid var(--line); }
+  .oss-head + .oss-head{ border-left:1px solid var(--line); padding-left:20px; }
   .oss-head .pr-updated{ margin-bottom:0; }
-  /* 카드 쌍 행: [PR 카드 | 기여 카드] — 같은 행 높이로 하단 정렬 */
+  /* 카드 쌍 행: [PR 카드 | 기여 카드] — 같은 행 높이로 하단 정렬.
+     블로그 카드(.posts)와 좌우 폭이 맞도록 padding 없이 카드만 여백. */
   .oss-rows{
-    padding:18px 24px 24px;
+    padding:18px 0 24px;
   }
   .oss-row{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:14px;
-    margin-bottom:14px;
+    gap:22px;                 /* 블로그 카드(.posts-grid)와 같은 gap */
+    margin-bottom:22px;
     align-items:stretch;
   }
   .oss-row:last-child{ margin-bottom:0; }
