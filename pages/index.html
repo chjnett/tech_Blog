@@ -187,6 +187,50 @@
     gap:22px;
     min-width:0;               /* 카드가 내용물 폭으로 화면을 넘치지 않게 */
   }
+  .category-section + .category-section{
+    margin-top:56px;
+  }
+  .category-heading{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:14px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .category-heading h2{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.04em;
+  }
+  .category-heading span{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .category-more{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    min-height:42px;
+    margin-top:14px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:99px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .category-more:hover{
+    color:var(--ink);
+    border-color:var(--ink-soft);
+    background:var(--bg-soft);
+  }
   .post-card{
     background:var(--bg);
     border:none;
@@ -528,6 +572,7 @@
     .hero-minimal{padding:48px 24px 32px;}
     .hero-3d{width:244px; height:230px;}
     .posts-grid{grid-template-columns:1fr;}
+    .category-section + .category-section{margin-top:40px;}
     .contrib-grid{grid-template-columns:1fr;}
     .oss-heads{grid-template-columns:1fr;}
     .oss-head + .oss-head{
@@ -594,15 +639,15 @@
   </div>
 </section>
 
-<!-- 카테고리 필터 -->
+<!-- 대표 카테고리 탐색: 태그는 카드 안의 세부 맥락으로 유지한다. -->
 <div class="filter-wrap" id="filterWrap" style="display:none" aria-label="카테고리 필터">
   <p class="filter-label">Category</p>
-  <div class="filter-pills" id="filterPills" role="group" aria-label="태그 필터"></div>
+  <div class="filter-pills" id="filterPills" role="group" aria-label="카테고리 필터"></div>
 </div>
 
 <section class="posts">
   <p class="posts-count" id="postsCount" aria-live="polite"></p>
-  <div class="posts-grid" id="postsGrid">
+  <div id="postsSections">
     <div class="empty-state" id="emptyState">해당 카테고리의 글이 없습니다.</div>
   </div>
 </section>
@@ -634,115 +679,155 @@
       .replace(/"/g, '&quot;');
   }
 
-  let allPosts   = [];
-  let activeTag  = null;   // null = 전체
+  const CATEGORIES = [
+    { id: 'backend-data', label: '백엔드·데이터' },
+    { id: 'ai-engineering', label: 'AI 엔지니어링' },
+    { id: 'ai-research', label: 'AI 리서치' },
+    { id: 'open-source', label: '오픈소스' },
+    { id: 'web-platform', label: '웹 플랫폼' },
+  ];
+
+  const CATEGORY_LABELS = Object.fromEntries(
+    CATEGORIES.map((category) => [category.id, category.label])
+  );
+  const CATEGORY_PREVIEW_LIMIT = 4;
+
+  let allPosts = [];
+  let activeCategory = null; // null = 전체
+  const expandedCategories = new Set();
+
+  // 대표 카테고리는 홈 탐색을 위한 1개 값이다. 세부 기술은 post.tags에 계속 남긴다.
+  function categoryFor(post) {
+    const tags = new Set(post.tags || []);
+    if (post.slug.startsWith('oss-') || tags.has('oss')) return 'open-source';
+    if (tags.has('transformer') || tags.has('attention')) return 'ai-research';
+    if (tags.has('ai-llm') || tags.has('rag') || tags.has('agents')) return 'ai-engineering';
+    if (tags.has('cloudflare') || tags.has('worker') || tags.has('security') ||
+        tags.has('performance') || tags.has('optimization') || tags.has('meta') || tags.has('guide')) {
+      return 'web-platform';
+    }
+    return 'backend-data';
+  }
 
   /* ── 필터 버튼 클릭 ── */
-  function setTag(tag) {
-    activeTag = tag;
+  function setCategory(category) {
+    activeCategory = category;
 
     // 버튼 active 상태 갱신
     document.querySelectorAll('.pill').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.tag === (tag ?? '__all__'));
-      btn.setAttribute('aria-pressed', btn.dataset.tag === (tag ?? '__all__') ? 'true' : 'false');
+      btn.classList.toggle('active', btn.dataset.category === (category ?? '__all__'));
+      btn.setAttribute('aria-pressed', btn.dataset.category === (category ?? '__all__') ? 'true' : 'false');
     });
 
     renderCards();
   }
 
-  /* ── 카드 표시/숨김 ── */
+  function postCard(post) {
+    const tagsHtml = (post.tags || []).map((tag) =>
+      `<span class="post-tag">#${escapeHtml(tag)}</span>`
+    ).join('');
+    const a = document.createElement('a');
+    a.className = 'post-card';
+    a.href = `/posts/${encodeURIComponent(post.slug)}`;
+    a.innerHTML = `
+      <span class="post-date">${escapeHtml((post.published_at || '').slice(0, 10))}</span>
+      <h2 class="post-title">${escapeHtml(post.title)}</h2>
+      <p class="post-excerpt">${escapeHtml(post.excerpt || '')}</p>
+      <div class="post-tags">${tagsHtml}</div>
+    `;
+    return a;
+  }
+
+  /* ── 대표 카테고리별 카드 섹션 렌더 ── */
   function renderCards() {
-    const cards  = document.querySelectorAll('.post-card');
-    let visible  = 0;
+    const sections = document.getElementById('postsSections');
+    sections.querySelectorAll('.category-section').forEach((el) => el.remove());
 
-    cards.forEach((card) => {
-      const tags = JSON.parse(card.dataset.tags || '[]');
-      const show = activeTag === null || tags.includes(activeTag);
-      card.classList.toggle('hidden', !show);
-      if (show) visible++;
+    const selectedCategories = activeCategory === null
+      ? CATEGORIES.map((category) => category.id)
+      : [activeCategory];
+    let visible = 0;
 
-      // 일치 태그 강조
-      card.querySelectorAll('.post-tag').forEach((el) => {
-        el.classList.toggle('match', activeTag !== null && el.dataset.tag === activeTag);
-      });
+    selectedCategories.forEach((category) => {
+      const posts = allPosts.filter((post) => categoryFor(post) === category);
+      if (!posts.length) return;
+
+      visible += posts.length;
+      const section = document.createElement('section');
+      section.className = 'category-section';
+      section.setAttribute('aria-labelledby', `category-${category}`);
+      const isExpanded = expandedCategories.has(category);
+      const postsToRender = isExpanded ? posts : posts.slice(0, CATEGORY_PREVIEW_LIMIT);
+      const gridId = `category-posts-${category}`;
+      section.innerHTML = `
+        <div class="category-heading">
+          <h2 id="category-${category}">${CATEGORY_LABELS[category]}</h2>
+          <span>${posts.length}개</span>
+        </div>
+        <div class="posts-grid" id="${gridId}"></div>
+      `;
+      const grid = section.querySelector('.posts-grid');
+      postsToRender.forEach((post) => grid.appendChild(postCard(post)));
+
+      if (posts.length > CATEGORY_PREVIEW_LIMIT) {
+        const more = document.createElement('button');
+        more.className = 'category-more';
+        more.type = 'button';
+        more.setAttribute('aria-controls', gridId);
+        more.setAttribute('aria-expanded', String(isExpanded));
+        more.textContent = isExpanded
+          ? '접기'
+          : `${posts.length - CATEGORY_PREVIEW_LIMIT}개 더보기`;
+        more.addEventListener('click', () => {
+          if (expandedCategories.has(category)) {
+            expandedCategories.delete(category);
+          } else {
+            expandedCategories.add(category);
+          }
+          renderCards();
+        });
+        section.appendChild(more);
+      }
+      sections.insertBefore(section, document.getElementById('emptyState'));
     });
 
-    // 카운트 텍스트
     const countEl = document.getElementById('postsCount');
-    if (activeTag) {
-      countEl.textContent = `#${activeTag} — ${visible}개`;
+    if (activeCategory) {
+      countEl.textContent = `${CATEGORY_LABELS[activeCategory]} — ${visible}개`;
     } else {
       countEl.textContent = `전체 ${visible}개`;
     }
 
-    // 빈 상태
     document.getElementById('emptyState').classList.toggle('visible', visible === 0);
   }
 
-  /* ── 필터 버튼 빌드 ── */
+  /* ── 대표 카테고리 버튼 빌드 ── */
   function buildFilter(posts) {
-    const tagCount = {};
-    posts.forEach((p) => {
-      (p.tags || []).forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; });
-    });
-
-    // 빈도순 정렬
-    const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
-
     const wrap = document.getElementById('filterPills');
 
     // 전체 버튼
     const all = document.createElement('button');
     all.className = 'pill active';
     all.textContent = '전체';
-    all.dataset.tag = '__all__';
+    all.dataset.category = '__all__';
     all.setAttribute('aria-pressed', 'true');
-    all.addEventListener('click', () => setTag(null));
+    all.addEventListener('click', () => setCategory(null));
     wrap.appendChild(all);
 
-    // 태그 버튼
-    sorted.forEach(([tag, cnt]) => {
+    CATEGORIES.forEach((category) => {
+      const count = posts.filter((post) => categoryFor(post) === category.id).length;
+      if (!count) return;
       const btn = document.createElement('button');
       btn.className = 'pill';
-      btn.textContent = `#${tag}`;
-      btn.dataset.tag = tag;
+      btn.textContent = category.label;
+      btn.dataset.category = category.id;
       btn.setAttribute('aria-pressed', 'false');
-      btn.title = `${cnt}개의 글`;
-      btn.addEventListener('click', () => setTag(tag));
+      btn.title = `${count}개의 글`;
+      btn.addEventListener('click', () => setCategory(category.id));
       wrap.appendChild(btn);
     });
 
     document.getElementById('filterWrap').style.display = '';
-  }
-
-  /* ── 카드 빌드 ── */
-  function buildCards(posts) {
-    const grid = document.getElementById('postsGrid');
-
-    // 기존 카드 제거 (emptyState는 유지)
-    grid.querySelectorAll('.post-card').forEach((el) => el.remove());
-
-    posts.forEach((post) => {
-      // 오픈소스 기여글(oss-*)은 아래 '기여한 글' 섹션에서 별도 표시.
-      if (post.slug.startsWith('oss-')) return;
-      const tagsJson = JSON.stringify(post.tags || []);
-      const tagsHtml = (post.tags || []).map((tag) =>
-        `<span class="post-tag" data-tag="${escapeHtml(tag)}">#${escapeHtml(tag)}</span>`
-      ).join('');
-
-      const a = document.createElement('a');
-      a.className = 'post-card';
-      a.href = `/posts/${encodeURIComponent(post.slug)}`;
-      a.dataset.tags = tagsJson;
-      a.innerHTML = `
-        <span class="post-date">${escapeHtml((post.published_at || '').slice(0, 10))}</span>
-        <h2 class="post-title">${escapeHtml(post.title)}</h2>
-        <p class="post-excerpt">${escapeHtml(post.excerpt || '')}</p>
-        <div class="post-tags">${tagsHtml}</div>
-      `;
-      // emptyState 앞에 삽입
-      grid.insertBefore(a, document.getElementById('emptyState'));
-    });
   }
 
   /* ── 기여한 글(oss-*) 카드 HTML ── */
@@ -790,12 +875,10 @@
   fetch('/api/posts')
     .then((res) => res.json())
     .then((posts) => {
-      // 기여글(oss-*)은 별도 섹션으로, 일반 글 목록/필터에서는 제외
       buildContrib(posts);                              // 기여한 글 섹션
-      allPosts = posts.filter((p) => !p.slug.startsWith('oss-'));
-      buildCards(allPosts);
+      allPosts = posts;
       buildFilter(allPosts);
-      renderCards();         // 초기 카운트 표시
+      renderCards();         // 초기 카테고리별 카드 표시
     })
     .catch((err) => console.error('failed to load posts', err));
 
